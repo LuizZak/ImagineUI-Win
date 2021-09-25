@@ -12,14 +12,17 @@ func wWinMain(_ hInstance: HINSTANCE,
 
     try? setupLogging()
 
-    WinLogger.info("App Started")
-
     let delegate = SampleDelegate()
     let fontPath = Bundle.module.path(forResource: "NotoSans-Regular", ofType: "ttf")!
+
+    if !FileManager.default.fileExists(atPath: fontPath) {
+        WinLogger.error("Failed to find default font face at path \(fontPath)")
+        fatalError()
+    }
+
     let settings = ImagineUIAppStartupSettings(defaultFontPath: fontPath)
 
     app = ImagineUIApp(delegate: delegate)
-
     return try! app.run(settings: settings)
 }
 

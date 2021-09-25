@@ -1,6 +1,7 @@
 import ImagineUI
 import SwiftBlend2D
 import WinSDK
+import WinSDK.User
 
 public class Blend2DWindow: Win32Window {
     /// Rate of update calls per second.
@@ -29,15 +30,15 @@ public class Blend2DWindow: Win32Window {
         super.initialize()
 
         globalTextClipboard = Win32TextClipboard()
-        
+
         content.delegate = self
-            
+
         recreateBufferImage()
     }
 
     override func updateAndPaint() {
         update()
-        
+
         super.updateAndPaint()
     }
 
@@ -48,7 +49,7 @@ public class Blend2DWindow: Win32Window {
         updateStopwatch.restart()
 
         content.update(Stopwatch.global.timeIntervalSinceStart())
-        
+
         guard let first = redrawBounds.first else {
             return
         }
@@ -58,9 +59,9 @@ public class Blend2DWindow: Win32Window {
 
         let options = BLContext.CreateOptions(threadCount: 4)
         let ctx = BLContext(image: blImage, options: options)!
-        
+
         content.render(context: ctx)
-        
+
         ctx.flush(flags: .sync)
         ctx.end()
 
@@ -72,9 +73,9 @@ public class Blend2DWindow: Win32Window {
 
     private func resizeApp() {
         content.resize(.init(width: Int(size.width), height: Int(size.height)))
-        
+
         recreateBufferImage()
-        
+
         redrawBounds.append(.init(location: .zero, size: size.asUISize))
     }
 
@@ -97,7 +98,7 @@ public class Blend2DWindow: Win32Window {
 
     override func onClose() {
         super.onClose()
-        
+
         WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
         content.didClose()
@@ -115,16 +116,16 @@ public class Blend2DWindow: Win32Window {
         guard let blImage = blImage else {
             return
         }
-        
+
         let imageData = blImage.getImageData()
-        
+
         let bitDepth: UINT = 32
-        let map = 
+        let map =
         CreateBitmap(
             Int32(blImage.width),
             Int32(blImage.height),
-            1, 
-            bitDepth, 
+            1,
+            bitDepth,
             imageData.pixelData
         )
         defer { DeleteObject(map) }
@@ -134,6 +135,97 @@ public class Blend2DWindow: Win32Window {
 
         SelectObject(src, map)
         BitBlt(hdc, 0, 0, Int32(blImage.width), Int32(blImage.height), src, 0, 0, SRCCOPY)
+    }
+
+    // MARK: Mouse Events
+
+    override func onMouseMove(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onMouseMove(wParam, lParam)
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseMoved(event: event)
+    }
+
+    override func onLeftMouseDown(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onLeftMouseDown(wParam, lParam)
+
+        SetCapture(hwnd)
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseDown(event: event)
+    }
+
+    override func onMiddleMouseDown(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onMiddleMouseDown(wParam, lParam)
+
+        SetCapture(hwnd)
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseDown(event: event)
+    }
+
+    override func onRightMouseDown(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onRightMouseDown(wParam, lParam)
+
+        SetCapture(hwnd)
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseDown(event: event)
+    }
+
+    override func onLeftMouseUp(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onLeftMouseUp(wParam, lParam)
+
+        ReleaseCapture()
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseUp(event: event)
+    }
+
+    override func onMiddleMouseUp(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onMiddleMouseUp(wParam, lParam)
+
+        ReleaseCapture()
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseUp(event: event)
+    }
+
+    override func onRightMouseUp(_ wParam: WPARAM, _ lParam: LPARAM) {
+        super.onRightMouseUp(wParam, lParam)
+
+        ReleaseCapture()
+
+        let event = makeMouseEventArgs(wParam, lParam)
+        content.mouseUp(event: event)
+    }
+
+    func makeMouseEventArgs(_ wParam: WPARAM, _ lParam: LPARAM) -> MouseEventArgs {
+        let x = GET_X_LPARAM(lParam)
+        let y = GET_Y_LPARAM(lParam)
+
+        var buttons: MouseButton = []
+
+        if IS_BIT_ON(wParam, MK_LBUTTON) {
+            buttons.insert(.left)
+        }
+        if IS_BIT_ON(wParam, MK_MBUTTON) {
+            buttons.insert(.middle)
+        }
+        if IS_BIT_ON(wParam, MK_RBUTTON) {
+            buttons.insert(.right)
+        }
+
+        let location = UIVector(x: Double(x), y: Double(y))
+
+        let event = MouseEventArgs(
+            location: location,
+            buttons: buttons,
+            delta: .zero,
+            clicks: 0
+        )
+
+        return event
     }
 }
 

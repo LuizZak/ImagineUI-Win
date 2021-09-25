@@ -7,6 +7,13 @@ class MainWindow: ImagineUIWindowContent {
 
     override func initialize() {
         super.initialize()
+
+        backgroundColor = .lightGray
+
+        let button = Button(title: "Press me!")
+        button.location = .init(x: 15, y: 15)
+        button.areaIntoConstraintsMask = [.location]
+        rootView.addSubview(button)
     }
 
     override func didClose() {
