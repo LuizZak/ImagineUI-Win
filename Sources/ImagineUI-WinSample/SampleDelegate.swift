@@ -1,11 +1,11 @@
 import ImagineUI_Win
 
 class SampleDelegate: ImagineUIAppDelegate {
-    var main: MainWindow?
+    var main: Blend2DWindowContentType?
 
     func appDidLaunch() {
-        let main = MainWindow(size: .init(width: 400, height: 300))
-        main.show()
+        let main = SampleWindow(size: .init(width: 400, height: 300))
+        app.show(content: main)
 
         self.main = main
     }

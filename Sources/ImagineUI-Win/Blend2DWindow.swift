@@ -2,6 +2,7 @@ import ImagineUI
 import SwiftBlend2D
 import WinSDK
 import WinSDK.User
+import WinSDK.WinGDI
 
 public class Blend2DWindow: Win32Window {
     /// Rate of update calls per second.
@@ -119,11 +120,14 @@ public class Blend2DWindow: Win32Window {
 
         let imageData = blImage.getImageData()
 
+        let bitmapWidth = Int32(blImage.width)
+        let bitmapHeight = Int32(blImage.height)
+
         let bitDepth: UINT = 32
         let map =
         CreateBitmap(
-            Int32(blImage.width),
-            Int32(blImage.height),
+            bitmapWidth,
+            bitmapHeight,
             1,
             bitDepth,
             imageData.pixelData
@@ -134,7 +138,25 @@ public class Blend2DWindow: Win32Window {
         defer { DeleteDC(src) }
 
         SelectObject(src, map)
-        BitBlt(hdc, 0, 0, Int32(blImage.width), Int32(blImage.height), src, 0, 0, SRCCOPY)
+
+        // TODO: Fix bad artifacts by doing this downscaling in Blend2D instead (GDI+ API is not available in Swift yet)
+        if content.renderScale == .init(repeating: 1) {
+            BitBlt(hdc, 0, 0, bitmapWidth, bitmapHeight, src, 0, 0, SRCCOPY)
+        } else {
+            StretchBlt(
+                hdc,
+                0,
+                0,
+                Int32(size.width),
+                Int32(size.height),
+                src,
+                0,
+                0,
+                bitmapWidth,
+                bitmapHeight,
+                SRCCOPY
+            )
+        }
     }
 
     // MARK: Mouse Events
