@@ -6,7 +6,9 @@ let package = Package(
     products: [
         .library(
             name: "ImagineUI-Win",
-            targets: ["ImagineUI-Win"]),
+            targets: [
+                "ImagineUI-Win",
+            ]),
     ],
     dependencies: [
         .package(url: "https://github.com/LuizZak/ImagineUI.git", .branch("master")),
@@ -19,22 +21,23 @@ let package = Package(
             dependencies: [
                 "ImagineUI",
                 .product(name: "SwiftCOM", package: "swift-com"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
             ]),
         .executableTarget(
             name: "ImagineUI-WinSample",
             dependencies: [
-                "ImagineUI-Win"
+                "ImagineUI-Win",
+                .product(name: "Logging", package: "swift-log"),
             ],
             exclude: [
-                "ImagineUI-WinSample.exe.manifest"
+                "ImagineUI-WinSample.exe.manifest",
             ],
             resources: [
                 .process("Resources/NotoSans-Regular.ttf")
             ],
             swiftSettings: [
                 .unsafeFlags([
-                    "-parse-as-library"
+                    "-parse-as-library",
                 ])
             ],
             linkerSettings: [
@@ -42,11 +45,13 @@ let package = Package(
                 .linkedLibrary("ComCtl32"),
                 .unsafeFlags([
                     "-Xlinker", 
-                    "/SUBSYSTEM:WINDOWS"
+                    "/SUBSYSTEM:WINDOWS",
                 ])
             ]),
         .testTarget(
             name: "ImagineUI-WinTests",
-            dependencies: ["ImagineUI-Win"]),
+            dependencies: [
+                "ImagineUI-Win",
+            ]),
     ]
 )

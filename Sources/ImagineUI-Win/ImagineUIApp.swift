@@ -4,7 +4,6 @@ import SwiftCOM
 import ImagineUI
 
 public class ImagineUIApp {
-    var shouldQuit = false
     var delegate: ImagineUIAppDelegate
 
     /// A list of all currently opened windows.
@@ -18,7 +17,7 @@ public class ImagineUIApp {
     public func show(content: Blend2DWindowContentType) {
         let window = Blend2DWindow(content: content)
         windows.append(window)
-        
+
         window.closed.addListener(owner: self) { [weak self] (w, _) in
             self?.windows.remove(w)
         }
@@ -30,7 +29,9 @@ public class ImagineUIApp {
     /// The program is not quit immediately, and may still process events after
     /// the quit request before closing.
     public func requestQuit() {
-        shouldQuit = true
+        WinLogger.info("Application requested termination.")
+
+        PostQuitMessage(0)
     }
 
     /// Initializes the main run loop of the application.
@@ -39,7 +40,7 @@ public class ImagineUIApp {
         do {
             try CoInitializeEx(COINIT_MULTITHREADED)
         } catch {
-            logging.error("CoInitializeEx: \(error)")
+            WinLogger.error("CoInitializeEx: \(error)")
             return EXIT_FAILURE
         }
 
@@ -51,7 +52,7 @@ public class ImagineUIApp {
 
         // Enable Per Monitor DPI Awareness
         if !SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) {
-            logging.error("SetProcessDpiAwarenessContext: \(Win32Error(win32: GetLastError()))")
+            WinLogger.error("SetProcessDpiAwarenessContext: \(Win32Error(win32: GetLastError()))")
         }
 
         let dwICC: DWORD = DWORD(ICC_BAR_CLASSES)
@@ -60,21 +61,21 @@ public class ImagineUIApp {
             | DWORD(ICC_NATIVEFNTCTL_CLASS)
             | DWORD(ICC_PROGRESS_CLASS)
             | DWORD(ICC_STANDARD_CLASSES)
-        
+
         var ICCE: INITCOMMONCONTROLSEX =
             INITCOMMONCONTROLSEX(dwSize: DWORD(MemoryLayout<INITCOMMONCONTROLSEX>.size),
                                 dwICC: dwICC)
         if !InitCommonControlsEx(&ICCE) {
-            logging.error("InitCommonControlsEx: \(Win32Error(win32: GetLastError()))")
+            WinLogger.error("InitCommonControlsEx: \(Win32Error(win32: GetLastError()))")
         }
 
         var pAppRegistration: PAPPSTATE_REGISTRATION?
         let ulStatus =
-            RegisterAppStateChangeNotification(pApplicationStateChangeRoutine, 
+            RegisterAppStateChangeNotification(pApplicationStateChangeRoutine,
                                                unsafeBitCast(self as AnyObject, to: PVOID.self),
                                                &pAppRegistration)
         if ulStatus != ERROR_SUCCESS {
-            logging.error("RegisterAppStateChangeNotification: \(Win32Error(win32: GetLastError()))")
+            WinLogger.error("RegisterAppStateChangeNotification: \(Win32Error(win32: GetLastError()))")
         }
 
         delegate.appDidLaunch()
@@ -83,11 +84,6 @@ public class ImagineUIApp {
         var nExitCode: Int32 = EXIT_SUCCESS
 
         mainLoop: while true {
-            if shouldQuit {
-                PostQuitMessage(0)
-                return 0
-            }
-
             // Process all messages in thread's message queue; for GUI applications UI
             // events must have high priority.
             while PeekMessageW(&msg, nil, 0, 0, UINT(PM_REMOVE)) {

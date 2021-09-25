@@ -26,6 +26,10 @@ struct Win32Error: Swift.Error {
         code = .hresult(hr)
     }
 
+    public init(hresult hr: HRESULT) {
+        code = .hresult(DWORD(hr))
+    }
+
     public init(errno: errno_t) {
         code = .errno(errno)
     }

@@ -96,7 +96,7 @@ public class Win32Window {
         )
 
         if (hwnd == nil) {
-            logging.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
+            WinLogger.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
             fatalError()
         }
 
@@ -139,7 +139,7 @@ public class Win32Window {
                                              false,
                                              DWORD(gwlExStyle),
                                              GetDpiForWindow(hwnd)) {
-                    logging.warning("AdjustWindowRetExForDpi: \(Win32Error(win32: GetLastError()))")
+                    WinLogger.warning("AdjustWindowRetExForDpi: \(Win32Error(win32: GetLastError()))")
                 }
 
                 return Rect(from: rc).size

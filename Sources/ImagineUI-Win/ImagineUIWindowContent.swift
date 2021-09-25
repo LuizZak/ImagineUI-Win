@@ -29,6 +29,10 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         controlSystem.delegate = self
         UISettings.scale = renderScale
         
+        initialize()
+    }
+
+    open func initialize() {
         addRootView(rootView)
     }
     

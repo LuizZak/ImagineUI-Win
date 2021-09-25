@@ -98,6 +98,7 @@ public class Blend2DWindow: Win32Window {
     override func onClose() {
         super.onClose()
         
+        WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
         content.didClose()
     }
