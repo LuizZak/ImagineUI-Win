@@ -1,0 +1,52 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "CassowarySwift",
+        "repositoryURL": "https://github.com/LuizZak/CassowarySwift.git",
+        "state": {
+          "branch": "cassowary-swift",
+          "revision": "8cd38ef939d15b1bde1a31105142eb8cfb290c3b",
+          "version": null
+        }
+      },
+      {
+        "package": "ImagineUI",
+        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
+        "state": {
+          "branch": "master",
+          "revision": "88091841d7596f91281453a95699b9e25f7d509b",
+          "version": null
+        }
+      },
+      {
+        "package": "SwiftBlend2D",
+        "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
+        "state": {
+          "branch": "master",
+          "revision": "b5fe4ddffa1fe9328a282c44ab0780baf23f8ce3",
+          "version": null
+        }
+      },
+      {
+        "package": "SwiftCOM",
+        "repositoryURL": "https://github.com/compnerd/swift-com.git",
+        "state": {
+          "branch": "main",
+          "revision": "ca762e3af3fca67ed7374e20e11ba719d9f691c6",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-log",
+        "repositoryURL": "https://github.com/apple/swift-log.git",
+        "state": {
+          "branch": "main",
+          "revision": "a7e6d7fef58b8909ec9463a492e257ab00d89a4b",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
