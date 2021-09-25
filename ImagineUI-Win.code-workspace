@@ -168,7 +168,7 @@
 		}
 	],
 	"settings": {
-		"files.eol": "\r\n",
+		"files.eol": "\n",
 		"commentAnchors.workspace.excludeFiles": "**/{node_modules,.git,.idea,target,out,build,vendor,.build,.swiftpm}/**/*",
 		"commentAnchors.tags.list": [
 			{
