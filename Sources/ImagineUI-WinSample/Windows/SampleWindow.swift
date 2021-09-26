@@ -419,11 +419,11 @@ extension SampleWindow: DefaultControlSystemDelegate {
     }
 
     func setMouseCursor(_ cursor: MouseCursorKind) {
-
+        delegate?.setMouseCursor(cursor)
     }
 
     func setMouseHiddenUntilMouseMoves() {
-
+        delegate?.setMouseHiddenUntilMouseMoves()
     }
 }
 

@@ -276,7 +276,31 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
     }
 
     public func setMouseCursor(_ cursor: MouseCursorKind) {
+        var hCursor: HCURSOR?
+
         // TODO: Implement cursor change
+        switch cursor {
+        case .arrow:
+            hCursor = LoadCursorW(nil, IDC_ARROW)
+
+        case .iBeam:
+            hCursor = LoadCursorW(nil, IDC_IBEAM)
+
+        case .resizeUpDown:
+            hCursor = LoadCursorW(nil, IDC_SIZENS)
+
+        case .resizeLeftRight:
+            hCursor = LoadCursorW(nil, IDC_SIZEWE)
+
+        case .custom(let imagePath, let hotspot):
+            // TODO: Implement custom cursor
+
+            break
+        }
+
+        if let hCursor = hCursor {
+            SetClassLongPtrW(hwnd, GCLP_HCURSOR, hCursorToLONG_PTR(hCursor))
+        }
     }
 
     public func setMouseHiddenUntilMouseMoves() {
