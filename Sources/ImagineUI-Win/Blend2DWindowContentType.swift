@@ -4,23 +4,23 @@ import ImagineUI
 
 public protocol Blend2DWindowContentType: AnyObject {
     var size: UIIntSize { get }
-    var renderScale: UIVector { get }
+    var preferredRenderScale: UIVector { get }
 
     var delegate: Blend2DWindowContentDelegate? { get set }
-    
+
     func willStartLiveResize()
     func didEndLiveResize()
     func resize(_ newSize: UIIntSize)
-    
+
     func update(_ time: TimeInterval)
     func performLayout()
-    func render(context ctx: BLContext)
-    
+    func render(context ctx: BLContext, renderScale: UIVector)
+
     func mouseDown(event: MouseEventArgs)
     func mouseMoved(event: MouseEventArgs)
     func mouseUp(event: MouseEventArgs)
     func mouseScroll(event: MouseEventArgs)
-    
+
     func keyDown(event: KeyEventArgs)
     func keyUp(event: KeyEventArgs)
 

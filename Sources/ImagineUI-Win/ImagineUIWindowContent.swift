@@ -16,7 +16,7 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     public var width: Int { size.width }
     public var height: Int { size.height }
 
-    public var renderScale: UIVector = .init(repeating: 1)
+    public var preferredRenderScale: UIVector = .init(repeating: 1)
 
     /// The default refresh color for this window content.
     /// If `nil`, no region clear is done before render calls and the last
@@ -37,7 +37,7 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         bounds = BLRect(location: .zero, size: BLSize(w: Double(size.width), h: Double(size.height)))
         rootViews = []
         controlSystem.delegate = self
-        UISettings.scale = renderScale
+        UISettings.scale = preferredRenderScale
 
         initialize()
     }
@@ -99,7 +99,7 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         }
     }
 
-    open func render(context ctx: BLContext) {
+    open func render(context ctx: BLContext, renderScale: UIVector) {
         guard let rect = currentRedrawRegion else {
             return
         }

@@ -16,7 +16,7 @@ class SampleWindow: Blend2DWindowContentType {
 
     let rendererContext = Blend2DRendererContext()
 
-    var renderScale: UIVector = UIVector(repeating: 1)
+    var preferredRenderScale: UIVector = UIVector(repeating: 1)
 
     var controlSystem = DefaultControlSystem()
 
@@ -248,7 +248,7 @@ class SampleWindow: Blend2DWindowContentType {
         }
     }
 
-    func render(context ctx: BLContext) {
+    func render(context ctx: BLContext, renderScale: UIVector) {
         guard let rect = currentRedrawRegion else {
             return
         }

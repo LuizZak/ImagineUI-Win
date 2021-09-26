@@ -8,6 +8,12 @@ public struct Point {
 
     public var x: Int
     public var y: Int
+
+    @_transparent
+    public init(x: Int, y: Int) {
+        self.x = x
+        self.y = y
+    }
 }
 
 public struct Size {
@@ -16,6 +22,7 @@ public struct Size {
     public var width: Int
     public var height: Int
 
+    @_transparent
     public init(width: Int, height: Int) {
         self.width = width
         self.height = height
@@ -30,47 +37,53 @@ public struct Rect {
 // MARK: App <-> Win32 Conversions
 
 extension Rect {
-    internal init(from: RECT) {
-        self.origin = Point(x: Int(from.left), y: Int(from.top))
-        self.size = Size(width: Int(from.right - from.left),
-                         height: Int(from.bottom - from.top))
+    var asRECT: RECT {
+        .init(left: LONG(self.origin.x),
+              top: LONG(self.origin.y),
+              right: LONG(self.origin.x + self.size.width),
+              bottom: LONG(self.origin.y + self.size.height))
     }
 }
 
 extension RECT {
-    internal init(from: Rect) {
-        self.init(left: LONG(from.origin.x),
-                  top: LONG(from.origin.y),
-                  right: LONG(from.origin.x + from.size.width),
-                  bottom: LONG(from.origin.y + from.size.height))
+    @_transparent
+    var asRect: Rect {
+        let origin = Point(x: Int(self.left), y: Int(self.top))
+        let size = Size(width: Int(self.right - self.left),
+                        height: Int(self.bottom - self.top))
+
+        return .init(origin: origin, size: size)
     }
 }
 
 extension Point {
-    internal init(from: POINT) {
-        self.init(x: Int(from.x), y: Int(from.y))
+    @_transparent
+    var asPOINT: POINT {
+        .init(x: LONG(self.x), y: LONG(self.y))
     }
 }
 
 extension POINT {
-    internal init(from: Point) {
-        self.init(x: LONG(from.x), y: LONG(from.y))
+    @_transparent
+    var asPoint: Point {
+        .init(x: Int(self.x), y: Int(self.y))
+    }
+
+    @_transparent
+    var asSize: Size {
+        .init(width: Int(self.x), height: Int(self.y))
     }
 }
 
 extension Size {
-    internal init(from: POINT) {
-        self.init(width: Int(from.x), height: Int(from.y))
-    }
-}
-
-extension POINT {
-    internal init(from: Size) {
-        self.init(x: LONG(from.width), y: LONG(from.height))
+    @_transparent
+    var asPOINT: POINT {
+        .init(x: LONG(self.width), y: LONG(self.height))
     }
 }
 
 extension Point {
+    @_transparent
     internal init<Integer: FixedWidthInteger>(x: Integer, y: Integer) {
         self.init(x: Int(x), y: Int(y))
     }
@@ -78,41 +91,88 @@ extension Point {
 
 // MARK: ImagineUI <-> App Conversions
 
-extension Rect {
-    init(from: UIRectangle) {
-        self.origin = Point(x: Int(from.x), y: Int(from.y))
-        self.size = Size(width: Int(from.width),
-                         height: Int(from.height))
+extension UIRectangle {
+    @_transparent
+    var asRect: Rect {
+        let origin = Point(x: Int(self.x), y: Int(self.y))
+        let size = Size(width: Int(self.width),
+                        height: Int(self.height))
+
+        return .init(origin: origin, size: size)
+    }
+}
+
+extension BLPoint {
+    @_transparent
+    var asUIPoint: UIPoint {
+        UIPoint(x: x, y: y)
+    }
+
+    @_transparent
+    var asUIVector: UIVector {
+        UIVector(x: x, y: y)
     }
 }
 
 extension UIIntSize {
+    @_transparent
     var asSize: Size {
         Size(width: width, height: height)
     }
 
-    init(from: Size) {
-        self.init(width: Int(from.width), height: Int(from.height))
+    @_transparent
+    var asBLSizeI: BLSizeI {
+        BLSizeI(w: Int32(width), h: Int32(height))
     }
 }
 
 extension Size {
+    @_transparent
     var asUIIntSize: UIIntSize {
         .init(width: width, height: height)
     }
 
+    @_transparent
     var asUISize: UISize {
         .init(width: Double(width), height: Double(height))
+    }
+
+    @_transparent
+    var asBLPoint: BLPoint {
+        .init(x: Double(width), y: Double(height))
+    }
+
+    @_transparent
+    var asBLPointI: BLPointI {
+        .init(x: Int32(width), y: Int32(height))
+    }
+
+    @_transparent
+    var asBLSize: BLSize {
+        .init(w: Double(width), h: Double(height))
+    }
+
+    @_transparent
+    var asBLSizeI: BLSizeI {
+        .init(w: Int32(width), h: Int32(height))
     }
 }
 
 // MARK: ImagineUI <-> Win32 Conversions
 
+extension UIRectangle {
+    @_transparent
+    var asRECT: RECT {
+        .init(left: LONG(self.location.x),
+              top: LONG(self.location.y),
+              right: LONG(self.location.x + self.size.width),
+              bottom: LONG(self.location.y + self.size.height))
+    }
+}
+
 extension RECT {
-    init(from: UIRectangle) {
-        self.init(left: LONG(from.location.x),
-                  top: LONG(from.location.y),
-                  right: LONG(from.location.x + from.size.width),
-                  bottom: LONG(from.location.y + from.size.height))
+    @_transparent
+    var asUIRectangle: UIRectangle {
+        .init(left: Double(left), top: Double(top), right: Double(right), bottom: Double(bottom))
     }
 }
