@@ -20,6 +20,7 @@ let package = Package(
             name: "ImagineUI-Win",
             dependencies: [
                 "ImagineUI",
+                .product(name: "Blend2DRenderer", package: "ImagineUI"),
                 .product(name: "SwiftCOM", package: "swift-com"),
                 .product(name: "Logging", package: "swift-log"),
             ]),
@@ -44,7 +45,7 @@ let package = Package(
                 .linkedLibrary("User32"),
                 .linkedLibrary("ComCtl32"),
                 .unsafeFlags([
-                    "-Xlinker", 
+                    "-Xlinker",
                     "/SUBSYSTEM:WINDOWS",
                 ])
             ]),

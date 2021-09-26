@@ -22,8 +22,6 @@ class SampleWindow: Blend2DWindowContentType {
 
     var rootViews: [RootView]
 
-    var currentRedrawRegion: UIRectangle? = nil
-
     var debugDrawFlags: Set<DebugDraw.DebugDrawFlags> = []
 
     init(size: UIIntSize) {
@@ -220,15 +218,13 @@ class SampleWindow: Blend2DWindowContentType {
         self.size = newSize
 
         bounds = BLRect(location: .zero, size: BLSize(w: Double(width), h: Double(height)))
-        currentRedrawRegion = bounds.asRectangle
 
-        for case let window as Window in rootViews where window.windowState == .maximized {
-            window.setNeedsLayout()
+        for view in rootViews {
+            view.setNeedsLayout()
         }
     }
 
     func invalidateScreen() {
-        currentRedrawRegion = bounds.asRectangle
         delegate?.invalidate(bounds: bounds.asRectangle)
     }
 
@@ -248,28 +244,21 @@ class SampleWindow: Blend2DWindowContentType {
         }
     }
 
-    func render(context ctx: BLContext, renderScale: UIVector) {
-        guard let rect = currentRedrawRegion else {
-            return
-        }
-
-        ctx.scale(by: renderScale.asBLPoint)
-        ctx.setFillStyle(BLRgba32.cornflowerBlue)
-
-        let redrawRegion = BLRegion(rectangle: BLRectI(rounding: rect.asBLRect))
-
-        ctx.fillRect(rect.asBLRect)
-
+    func render(context ctx: BLContext, renderScale: UIVector, clipRegion: ClipRegion) {
         let renderer = Blend2DRenderer(context: ctx)
+        renderer.scale(by: renderScale)
+
+        renderer.setFill(.cornflowerBlue)
+        renderer.fill(clipRegion.bounds())
 
         // Redraw loop
         for rootView in rootViews {
-            rootView.renderRecursive(in: renderer, screenRegion: Blend2DClipRegion(region: redrawRegion))
+            rootView.renderRecursive(in: renderer, screenRegion: clipRegion)
         }
 
         // Debug render
         for rootView in rootViews {
-            DebugDraw.debugDrawRecursive(rootView, flags: debugDrawFlags, to: ctx)
+            DebugDraw.debugDrawRecursive(rootView, flags: debugDrawFlags, in: renderer)
         }
     }
 
@@ -429,17 +418,7 @@ extension SampleWindow: DefaultControlSystemDelegate {
 
 extension SampleWindow: RootViewRedrawInvalidationDelegate {
     func rootView(_ rootView: RootView, invalidateRect rect: UIRectangle) {
-        guard let intersectedRect = rect.intersection(bounds.asRectangle) else {
-            return
-        }
-
-        if let current = currentRedrawRegion {
-            currentRedrawRegion = current.union(intersectedRect)
-        } else {
-            currentRedrawRegion = intersectedRect
-        }
-
-        delegate?.invalidate(bounds: intersectedRect)
+        delegate?.invalidate(bounds: rect)
     }
 }
 

@@ -1,5 +1,5 @@
 import ImagineUI
-import SwiftBlend2D
+import Blend2DRenderer
 import WinSDK
 import WinSDK.User
 import WinSDK.WinGDI
@@ -91,6 +91,8 @@ public class Blend2DWindow: Win32Window {
             return
         }
 
+        // TODO: Support using a single buffer if the preferred render scale of
+        // TODO: self.content is 1.0.
         immediateBuffer = BLImage(size: immediateBufferSize, format: .xrgb32)
 
         if let hdc = GetDC(hwnd) {
@@ -139,8 +141,10 @@ public class Blend2DWindow: Win32Window {
             EndPaint(hwnd, &ps)
         }
 
-        paintImmediateBuffer(ps.rcPaint.asUIRectangle)
-        paintScreenBuffer(ps.rcPaint.asUIRectangle)
+        let uiRect = ps.rcPaint.asUIRectangle.scaled(by: 1 / dpiScalingFactor)
+
+        paintImmediateBuffer(uiRect)
+        paintScreenBuffer(uiRect)
 
         guard let secondaryBuffer = secondaryBuffer else {
             return
@@ -148,7 +152,9 @@ public class Blend2DWindow: Win32Window {
         let bitmapWidth = secondaryBufferSize.w
         let bitmapHeight = secondaryBufferSize.h
 
-        secondaryBuffer.pushPixelsToGDI(ps.rcPaint.asUIRectangle)
+        // TODO: Should we refresh the secondary buffer if the device context
+        // TODO: for the draw call changes?
+        secondaryBuffer.pushPixelsToGDI(uiRect)
         secondaryBuffer.bitBlt(to: hdc, 0, 0, bitmapWidth, bitmapHeight, 0, 0, SRCCOPY)
     }
 
@@ -159,8 +165,13 @@ public class Blend2DWindow: Win32Window {
 
         let ctx = BLContext(image: immediateBuffer)!
 
-        content.render(context: ctx, renderScale: immediateBufferRenderScale.asUIVector)
+        let clip = Blend2DClipRegion(region: .init(rectangle: .init(rounding: rect.asBLRect)))
 
+        content.render(context: ctx, renderScale: immediateBufferRenderScale.asUIVector, clipRegion: clip)
+
+        ctx.setStrokeStyle(BLRgba32.red)
+        ctx.setStrokeWidth(2)
+        ctx.strokeRect(rect.asBLRect)
         ctx.flush(flags: .sync)
         ctx.end()
     }
@@ -291,6 +302,15 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
 
         case .resizeLeftRight:
             hCursor = LoadCursorW(nil, IDC_SIZEWE)
+
+        case .resizeTopLeftBottomRight:
+            hCursor = LoadCursorW(nil, IDC_SIZENWSE)
+
+        case .resizeTopRightBottomLeft:
+            hCursor = LoadCursorW(nil, IDC_SIZENESW)
+
+        case .resizeAll:
+            hCursor = LoadCursorW(nil, IDC_SIZEALL)
 
         case .custom(let imagePath, let hotspot):
             // TODO: Implement custom cursor

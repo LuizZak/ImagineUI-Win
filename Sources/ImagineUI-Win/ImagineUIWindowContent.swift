@@ -1,6 +1,6 @@
 import Foundation
 import ImagineUI
-import SwiftBlend2D
+import Blend2DRenderer
 
 open class ImagineUIWindowContent: Blend2DWindowContentType {
     private var lastFrame: TimeInterval = 0
@@ -21,7 +21,7 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     /// The default refresh color for this window content.
     /// If `nil`, no region clear is done before render calls and the last
     /// refresh's pixels will remain on the backbuffer.
-    public var backgroundColor: BLRgba32? = .cornflowerBlue {
+    public var backgroundColor: Color? = .cornflowerBlue {
         didSet {
             invalidateScreen()
         }
@@ -99,30 +99,23 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         }
     }
 
-    open func render(context ctx: BLContext, renderScale: UIVector) {
-        guard let rect = currentRedrawRegion else {
-            return
-        }
-
-        ctx.scale(by: renderScale.asBLPoint)
+    open func render(context ctx: BLContext, renderScale: UIVector, clipRegion: ClipRegion) {
+        let renderer = Blend2DRenderer(context: ctx)
+        renderer.scale(by: renderScale)
 
         if let backgroundColor = backgroundColor {
-            ctx.setFillStyle(backgroundColor)
-            ctx.fillRect(rect.asBLRect)
+            renderer.setFill(backgroundColor)
+            renderer.fill(clipRegion.bounds())
         }
-
-        let redrawRegion = BLRegion(rectangle: BLRectI(rounding: rect.asBLRect))
-
-        let renderer = Blend2DRenderer(context: ctx)
 
         // Redraw loop
         for rootView in rootViews {
-            rootView.renderRecursive(in: renderer, screenRegion: Blend2DClipRegion(region: redrawRegion))
+            rootView.renderRecursive(in: renderer, screenRegion: clipRegion)
         }
 
         // Debug render
         for rootView in rootViews {
-            DebugDraw.debugDrawRecursive(rootView, flags: debugDrawFlags, to: ctx)
+            DebugDraw.debugDrawRecursive(rootView, flags: debugDrawFlags, in: renderer)
         }
     }
 
@@ -185,17 +178,7 @@ extension ImagineUIWindowContent: DefaultControlSystemDelegate {
 
 extension ImagineUIWindowContent: RootViewRedrawInvalidationDelegate {
     open func rootView(_ rootView: RootView, invalidateRect rect: UIRectangle) {
-        guard let intersectedRect = rect.intersection(bounds.asRectangle) else {
-            return
-        }
-
-        if let current = currentRedrawRegion {
-            currentRedrawRegion = current.union(intersectedRect)
-        } else {
-            currentRedrawRegion = intersectedRect
-        }
-
-        delegate?.invalidate(bounds: intersectedRect)
+        delegate?.invalidate(bounds: rect)
     }
 }
 

@@ -14,7 +14,7 @@ public protocol Blend2DWindowContentType: AnyObject {
 
     func update(_ time: TimeInterval)
     func performLayout()
-    func render(context ctx: BLContext, renderScale: UIVector)
+    func render(context ctx: BLContext, renderScale: UIVector, clipRegion: ClipRegion)
 
     func mouseDown(event: MouseEventArgs)
     func mouseMoved(event: MouseEventArgs)

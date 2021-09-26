@@ -1,5 +1,6 @@
 import WinSDK
 import ImagineUI
+import Blend2DRenderer
 
 // MARK: Type defs
 
