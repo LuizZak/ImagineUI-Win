@@ -13,6 +13,13 @@ public class ImagineUIApp {
         self.delegate = delegate
     }
 
+    /// Dispatches a closure to perform on the main thread queue.
+    public func dispatchMain(_ block: @escaping () -> Void) {
+        RunLoop.main.perform {
+            block()
+        }
+    }
+
     /// Opens a window to show a given content.
     public func show(content: Blend2DWindowContentType) {
         let window = Blend2DWindow(content: content)

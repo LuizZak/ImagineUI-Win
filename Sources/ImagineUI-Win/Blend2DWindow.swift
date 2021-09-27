@@ -68,11 +68,6 @@ public class Blend2DWindow: Win32Window {
     }
 
     func update() {
-        guard updateStopwatch.timeIntervalSinceStart() > (1 / updateRate) else {
-            return
-        }
-        updateStopwatch.restart()
-
         content.update(Stopwatch.global.timeIntervalSinceStart())
     }
 
@@ -163,15 +158,13 @@ public class Blend2DWindow: Win32Window {
             return
         }
 
-        let ctx = BLContext(image: immediateBuffer)!
+        let options = BLContext.CreateOptions(threadCount: 0) // TODO: Multi-threading on Windows is crashing, disable threads in Blend2D for now.
+        let ctx = BLContext(image: immediateBuffer, options: options)!
 
         let clip = Blend2DClipRegion(region: .init(rectangle: .init(rounding: rect.asBLRect)))
 
         content.render(context: ctx, renderScale: immediateBufferRenderScale.asUIVector, clipRegion: clip)
 
-        ctx.setStrokeStyle(BLRgba32.red)
-        ctx.setStrokeWidth(2)
-        ctx.strokeRect(rect.asBLRect)
         ctx.flush(flags: .sync)
         ctx.end()
     }
@@ -282,6 +275,10 @@ public class Blend2DWindow: Win32Window {
 }
 
 extension Blend2DWindow: Blend2DWindowContentDelegate {
+    public func needsLayout(_ view: View) {
+        setNeedsDisplay()
+    }
+
     public func invalidate(bounds: UIRectangle) {
         setNeedsDisplay(bounds.scaled(by: dpiScalingFactor).asRect)
     }

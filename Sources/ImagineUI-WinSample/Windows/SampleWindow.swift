@@ -417,6 +417,10 @@ extension SampleWindow: DefaultControlSystemDelegate {
 }
 
 extension SampleWindow: RootViewRedrawInvalidationDelegate {
+    func rootViewInvalidatedLayout(_ rootView: RootView) {
+        delegate?.needsLayout(rootView)
+    }
+
     func rootView(_ rootView: RootView, invalidateRect rect: UIRectangle) {
         delegate?.invalidate(bounds: rect)
     }

@@ -158,6 +158,7 @@
 			"path": ".build/checkouts"
 		},
 		{
+			"name": "Build Path",
 			"path": ".build/x86_64-unknown-windows-msvc/debug"
 		}
 	],

@@ -37,7 +37,6 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         bounds = BLRect(location: .zero, size: BLSize(w: Double(size.width), h: Double(size.height)))
         rootViews = []
         controlSystem.delegate = self
-        UISettings.scale = preferredRenderScale
 
         initialize()
     }
@@ -177,6 +176,12 @@ extension ImagineUIWindowContent: DefaultControlSystemDelegate {
 }
 
 extension ImagineUIWindowContent: RootViewRedrawInvalidationDelegate {
+    /// Signals the delegate that a given root view has invalidated its layout
+    /// and needs to update it.
+    open func rootViewInvalidatedLayout(_ rootView: RootView) {
+        delegate?.needsLayout(rootView)
+    }
+
     open func rootView(_ rootView: RootView, invalidateRect rect: UIRectangle) {
         delegate?.invalidate(bounds: rect)
     }

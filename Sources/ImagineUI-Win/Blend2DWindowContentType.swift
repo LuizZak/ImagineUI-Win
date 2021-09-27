@@ -30,6 +30,7 @@ public protocol Blend2DWindowContentType: AnyObject {
 }
 
 public protocol Blend2DWindowContentDelegate: AnyObject {
+    func needsLayout(_ view: View)
     func invalidate(bounds: UIRectangle)
     func setMouseCursor(_ cursor: MouseCursorKind)
     func setMouseHiddenUntilMouseMoves()
