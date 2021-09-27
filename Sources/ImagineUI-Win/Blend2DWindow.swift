@@ -91,7 +91,7 @@ public class Blend2DWindow: Win32Window {
         immediateBuffer = BLImage(size: immediateBufferSize, format: .xrgb32)
 
         if let hdc = GetDC(hwnd) {
-            secondaryBuffer = Blend2DImageBuffer(size: secondaryBufferSize, format: .xrgb32, hdc: hdc)
+            secondaryBuffer = Blend2DImageBuffer(size: secondaryBufferSize, hdc: hdc)
         } else {
             WinLogger.warning("Failed to create device context for secondary buffer")
             secondaryBuffer = nil
@@ -150,7 +150,9 @@ public class Blend2DWindow: Win32Window {
         // TODO: Should we refresh the secondary buffer if the device context
         // TODO: for the draw call changes?
         secondaryBuffer.pushPixelsToGDI(uiRect)
-        secondaryBuffer.bitBlt(to: hdc, 0, 0, bitmapWidth, bitmapHeight, 0, 0, SRCCOPY)
+        let w = ps.rcPaint.right - ps.rcPaint.left
+        let h = ps.rcPaint.bottom - ps.rcPaint.top
+        secondaryBuffer.bitBlt(to: hdc, ps.rcPaint.left, ps.rcPaint.top, w, h, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY)
     }
 
     private func paintImmediateBuffer(_ rect: UIRectangle) {

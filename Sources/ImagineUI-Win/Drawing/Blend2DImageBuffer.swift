@@ -4,38 +4,26 @@ import SwiftBlend2D
 
 /// A pairing of BLImage and HBITMAP which map to the same underlying memory
 /// block.
+/// Blend2D bitmaps are always created with format BLFormat.xrgb32.
 class Blend2DImageBuffer {
-    private var cHDC: HDC
     private var bitmapInfo: BITMAPINFO
+    private var bitmapPointer: UnsafeMutableRawPointer?
 
     var blImage: BLImage
     var hBitmap: HBITMAP
 
     var size: BLSizeI
 
-    convenience init(width: Int, height: Int, format: BLFormat, hdc: HDC) {
-        self.init(size: .init(w: Int32(width), h: Int32(height)), format: format, hdc: hdc)
+    convenience init(width: Int, height: Int, hdc: HDC) {
+        self.init(size: .init(w: Int32(width), h: Int32(height)), hdc: hdc)
     }
 
-    convenience init(size: UIIntSize, format: BLFormat, hdc: HDC) {
-        self.init(size: size.asBLSizeI, format: format, hdc: hdc)
+    convenience init(size: UIIntSize, hdc: HDC) {
+        self.init(size: size.asBLSizeI, hdc: hdc)
     }
 
-    init(size: BLSizeI, format: BLFormat, hdc: HDC) {
+    init(size: BLSizeI, hdc: HDC) {
         self.size = size
-        self.cHDC = CreateCompatibleDC(hdc)
-        self.blImage = BLImage(size: size, format: .xrgb32)
-
-        guard let hBitmap = CreateCompatibleBitmap(hdc, size.w, size.h) else {
-            WinLogger.error("Failed to create device-compatible bitmap")
-            fatalError()
-        }
-
-        self.hBitmap = hBitmap
-
-        SaveDC(cHDC)
-
-        SelectObject(cHDC, hBitmap)
 
         let bitDepth: WORD = 32
 
@@ -46,40 +34,39 @@ class Blend2DImageBuffer {
         bitmapInfo.bmiHeader.biPlanes = 1
         bitmapInfo.bmiHeader.biBitCount = bitDepth
         bitmapInfo.bmiHeader.biCompression = DWORD(BI_RGB)
+
+        let screen = GetDC(nil)
+        defer { ReleaseDC(nil, screen) }
+
+        self.hBitmap = CreateDIBSection(screen, &bitmapInfo, UINT(DIB_RGB_COLORS), &bitmapPointer, nil, 0)
+
+        guard let pointer = bitmapPointer else {
+            WinLogger.error("Failed to create DIB")
+            fatalError()
+        }
+
+        let stride = Int(size.w) * 4
+        self.blImage = BLImage(fromUnownedData: pointer, stride: stride, size: size, format: .xrgb32)
     }
 
     deinit {
-        DeleteDC(cHDC)
         DeleteObject(hBitmap)
     }
 
     /// Copies pixels from the Blend2D `blImage` into the GDI `hBitmap`.
     func pushPixelsToGDI(_ rect: UIRectangle) {
-        // Release image prior to SetDIBits
-        RestoreDC(cHDC, -1)
-
-        let imageData = blImage.getImageData()
-
-        let result = SetDIBits(
-            cHDC,
-            hBitmap,
-            0,
-            UINT(imageData.size.h),
-            imageData.pixelData,
-            &bitmapInfo,
-            UINT(DIB_RGB_COLORS)
-        )
-        if result == 0 {
-            WinLogger.error("Error while pushing pixels to GDI: \(Win32Error(win32: GetLastError()))")
-            fatalError()
-        }
-
-        // Select bitmap again
-        SelectObject(cHDC, hBitmap)
+        // Noop: Using CreateDIBSection
     }
 
     @discardableResult
     func bitBlt(to hdc: HDC!, _ x: Int32, _ y: Int32, _ cx: Int32, _ cy: Int32, _ x1: Int32, _ y1: Int32, _ rop: DWORD) -> Bool {
-        BitBlt(hdc, x, y, cx, cy, cHDC, x1, y1, rop)
+        let cHDC = CreateCompatibleDC(hdc)
+        let oldBitmap = SelectObject(cHDC, hBitmap)
+        defer {
+            SelectObject(cHDC, oldBitmap)
+            DeleteDC(cHDC)
+        }
+
+        return BitBlt(hdc, x, y, cx, cy, cHDC, x1, y1, rop)
     }
 }
