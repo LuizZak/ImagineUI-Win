@@ -144,8 +144,6 @@ public class Blend2DWindow: Win32Window {
         guard let secondaryBuffer = secondaryBuffer else {
             return
         }
-        let bitmapWidth = secondaryBufferSize.w
-        let bitmapHeight = secondaryBufferSize.h
 
         // TODO: Should we refresh the secondary buffer if the device context
         // TODO: for the draw call changes?

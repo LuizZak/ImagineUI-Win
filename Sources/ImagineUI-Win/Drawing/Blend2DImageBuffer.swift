@@ -9,10 +9,10 @@ class Blend2DImageBuffer {
     private var bitmapInfo: BITMAPINFO
     private var bitmapPointer: UnsafeMutableRawPointer?
 
-    var blImage: BLImage
-    var hBitmap: HBITMAP
+    let blImage: BLImage
+    let hBitmap: HBITMAP
 
-    var size: BLSizeI
+    let size: BLSizeI
 
     convenience init(width: Int, height: Int, hdc: HDC) {
         self.init(size: .init(w: Int32(width), h: Int32(height)), hdc: hdc)
