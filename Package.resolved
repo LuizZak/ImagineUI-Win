@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
         "state": {
           "branch": "master",
-          "revision": "e866e8a24bd517b6530397b8e53a16b08aa84d3d",
+          "revision": "df05ae62b4a15ac61958e5da5e4f2b79d66c5025",
           "version": null
         }
       },
@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
         "state": {
           "branch": "master",
-          "revision": "db24cfacb93ccfc5032bf05d3555cb942b45c79c",
+          "revision": "c3b1c2470e13384d17dfe256f65a784c1f73d3cb",
           "version": null
         }
       },

@@ -10,6 +10,10 @@ func wWinMain(_ hInstance: HINSTANCE,
               _ pCmdLine: PWSTR,
               _ nCmdShow: CInt) -> CInt {
 
+    return try! start()
+}
+
+func start() throws -> CInt {
     try? setupLogging()
 
     let delegate = SampleDelegate()
@@ -23,7 +27,7 @@ func wWinMain(_ hInstance: HINSTANCE,
     let settings = ImagineUIAppStartupSettings(defaultFontPath: fontPath)
 
     app = ImagineUIApp(delegate: delegate)
-    return try! app.run(settings: settings)
+    return try app.run(settings: settings)
 }
 
 func setupLogging() throws {

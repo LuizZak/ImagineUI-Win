@@ -12,14 +12,22 @@ public class Blend2DWindow: Win32Window {
     public let updateStopwatch = Stopwatch.start()
     public let content: Blend2DWindowContentType
 
-    /// Returns the computed size for `content`, based on the window's scaled
+    /// Returns the computed size for `content`, based on the window's scale
     /// divided by `dpiScalingFactor`.
     public var contentSize: UIIntSize {
         size.asUIIntSize.scaled(by: 1.0 / dpiScalingFactor)
     }
 
+    var usingDoubleBuffer: Bool { _immediateBuffer != nil && secondaryBuffer != nil }
+
+    /// If non-nil, fetching `immediateBuffer` returns this value, if `nil`,
+    /// fetching `immediateBuffer` returns `secondaryBuffer.blImage`, instead.
+    var _immediateBuffer: BLImage?
+
     /// An immediate buffer where ``content`` is drawn to it's full scale.
-    var immediateBuffer: BLImage?
+    var immediateBuffer: BLImage? {
+        return _immediateBuffer ?? secondaryBuffer?.blImage
+    }
 
     /// Returns the render scale for content that must be drawn on the
     /// `immediateBuffer` with a 1:1 relationship between rendered pixel and
@@ -80,21 +88,22 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func recreateBuffers() {
+        _immediateBuffer = nil
+        secondaryBuffer = nil
+
         guard content.size > .zero else {
-            immediateBuffer = nil
-            secondaryBuffer = nil
             return
         }
-
-        // TODO: Support using a single buffer if the preferred render scale of
-        // TODO: self.content is 1.0.
-        immediateBuffer = BLImage(size: immediateBufferSize, format: .xrgb32)
 
         if let hdc = GetDC(hwnd) {
             secondaryBuffer = Blend2DImageBuffer(size: secondaryBufferSize, hdc: hdc)
         } else {
             WinLogger.warning("Failed to create device context for secondary buffer")
             secondaryBuffer = nil
+        }
+
+        if content.preferredRenderScale != 1 {
+            _immediateBuffer = BLImage(size: immediateBufferSize, format: .xrgb32)
         }
     }
 
@@ -114,8 +123,8 @@ public class Blend2DWindow: Win32Window {
         WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), immediateBufferSize: \(immediateBufferSize), secondaryBufferSize: \(secondaryBufferSize)")
     }
 
-    override func onClose() {
-        super.onClose()
+    override func onClose(_ message: WindowMessage) {
+        super.onClose(message)
 
         WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
@@ -136,20 +145,20 @@ public class Blend2DWindow: Win32Window {
             EndPaint(hwnd, &ps)
         }
 
-        let uiRect = ps.rcPaint.asUIRectangle.scaled(by: 1 / dpiScalingFactor)
-
-        paintImmediateBuffer(uiRect)
-        paintScreenBuffer(uiRect)
-
         guard let secondaryBuffer = secondaryBuffer else {
             return
         }
 
-        // TODO: Should we refresh the secondary buffer if the device context
-        // TODO: for the draw call changes?
-        secondaryBuffer.pushPixelsToGDI(uiRect)
+        let uiRect = ps.rcPaint.asUIRectangle.scaled(by: 1 / dpiScalingFactor)
+
+        paintImmediateBuffer(uiRect)
+        if usingDoubleBuffer {
+            paintScreenBuffer(uiRect)
+        }
+
         let w = ps.rcPaint.right - ps.rcPaint.left
         let h = ps.rcPaint.bottom - ps.rcPaint.top
+        secondaryBuffer.pushPixelsToGDI(uiRect)
         secondaryBuffer.bitBlt(to: hdc, ps.rcPaint.left, ps.rcPaint.top, w, h, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY)
     }
 
@@ -172,11 +181,18 @@ public class Blend2DWindow: Win32Window {
     private func paintScreenBuffer(_ rect: UIRectangle) {
         guard let immediateBuffer = immediateBuffer else { return }
         guard let secondaryBuffer = secondaryBuffer else { return }
+
+        if immediateBuffer === secondaryBuffer {
+            WinLogger.warning("Attempted to paint screen buffer in single-buffered render mode.")
+            return
+        }
+
         guard let ctx = BLContext(image: secondaryBuffer.blImage) else { return }
 
         ctx.compOp = .sourceCopy
         ctx.setPatternQualityHint(.bilinear)
         ctx.setRenderingQualityHint(.antialias)
+        ctx.clipToRect(rect.asBLRect)
         ctx.blitScaledImage(immediateBuffer, rectangle: BLRectI(location: .zero, size: secondaryBufferSize))
 
         ctx.flush(flags: .sync)
@@ -185,65 +201,78 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Mouse Events
 
-    override func onMouseMove(_ message: WindowMessage) {
-        super.onMouseMove(message)
+    override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            let event = makeMouseEventArgs(message)
+            content.mouseMoved(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseMoved(event: event)
+        return super.onMouseMove(message)
     }
 
-    override func onLeftMouseDown(_ message: WindowMessage) {
-        super.onLeftMouseDown(message)
+    override func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            SetCapture(hwnd)
+            let event = makeMouseEventArgs(message)
+            content.mouseDown(event: event)
+        }
 
-        SetCapture(hwnd)
-
-        let event = makeMouseEventArgs(message)
-        content.mouseDown(event: event)
+        return super.onLeftMouseDown(message)
     }
 
-    override func onMiddleMouseDown(_ message: WindowMessage) {
-        super.onMiddleMouseDown(message)
+    override func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            SetCapture(hwnd)
 
-        SetCapture(hwnd)
+            let event = makeMouseEventArgs(message)
+            content.mouseDown(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseDown(event: event)
+        return super.onMiddleMouseDown(message)
     }
 
-    override func onRightMouseDown(_ message: WindowMessage) {
-        super.onRightMouseDown(message)
+    override func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            SetCapture(hwnd)
 
-        SetCapture(hwnd)
+            let event = makeMouseEventArgs(message)
+            content.mouseDown(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseDown(event: event)
+        return super.onRightMouseDown(message)
     }
 
-    override func onLeftMouseUp(_ message: WindowMessage) {
-        super.onLeftMouseUp(message)
+    override func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            ReleaseCapture()
 
-        ReleaseCapture()
+            let event = makeMouseEventArgs(message)
+            content.mouseUp(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseUp(event: event)
+        return super.onLeftMouseUp(message)
     }
 
-    override func onMiddleMouseUp(_ message: WindowMessage) {
-        super.onMiddleMouseUp(message)
+    override func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            ReleaseCapture()
 
-        ReleaseCapture()
+            let event = makeMouseEventArgs(message)
+            content.mouseUp(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseUp(event: event)
+        return super.onMiddleMouseUp(message)
     }
 
-    override func onRightMouseUp(_ message: WindowMessage) {
-        super.onRightMouseUp(message)
+    override func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            ReleaseCapture()
 
-        ReleaseCapture()
+            let event = makeMouseEventArgs(message)
+            content.mouseUp(event: event)
+        }
 
-        let event = makeMouseEventArgs(message)
-        content.mouseUp(event: event)
+        return super.onRightMouseUp(message)
     }
 
     func makeMouseEventArgs(_ message: WindowMessage) -> MouseEventArgs {

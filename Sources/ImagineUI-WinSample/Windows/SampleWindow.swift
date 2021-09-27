@@ -251,6 +251,8 @@ class SampleWindow: Blend2DWindowContentType {
         renderer.setFill(.cornflowerBlue)
         renderer.fill(clipRegion.bounds())
 
+        ctx.clipToRect(clipRegion.bounds().asBLRect)
+
         // Redraw loop
         for rootView in rootViews {
             rootView.renderRecursive(in: renderer, screenRegion: clipRegion)

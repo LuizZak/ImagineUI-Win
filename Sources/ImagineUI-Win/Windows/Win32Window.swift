@@ -60,10 +60,10 @@ public class Win32Window {
 
     // MARK: Window events
 
-    /// Called when the window has receiveda `WM_DESTROY` message.
+    /// Called when the window has received  `WM_DESTROY` message.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
-    func onClose() {
+    func onClose(_ message: WindowMessage) {
 
     }
 
@@ -120,57 +120,131 @@ public class Win32Window {
 
     /// Called when the mouse moves within the client area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousemove
-    func onMouseMove(_ message: WindowMessage) {
-
+    func onMouseMove(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user presses down the left mouse button within the client
     /// area of this window.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttondown
-    func onLeftMouseDown(_ message: WindowMessage) {
-
+    func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user presses down the middle mouse button within the client
     /// area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mbuttondown
-    func onMiddleMouseDown(_ message: WindowMessage) {
-
+    func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user presses down the right mouse button within the client
     /// area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-rbuttondown
-    func onRightMouseDown(_ message: WindowMessage) {
-
+    func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user releases the left mouse button within the client
     /// area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttonup
-    func onLeftMouseUp(_ message: WindowMessage) {
-
+    func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user releases the middle mouse button within the client
     /// area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mbuttonup
-    func onMiddleMouseUp(_ message: WindowMessage) {
-
+    func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     /// Called when the user releases the right mouse button within the client
     /// area of this window.
     ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-rbuttonup
-    func onRightMouseUp(_ message: WindowMessage) {
+    func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
 
+    // MARK: Keyboard events
+
+    /// Called when the user presses a keyboard key while this window has focus.
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keydown
+    func onKeyDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
+    /// Called when the user releases a keyboard key while this window has focus.
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keyup
+    func onKeyUp(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
+    /// "Posted to the window with the keyboard focus when the user presses the
+    /// F10 key (which activates the menu bar) or holds down the ALT key and
+    /// then presses another key."
+    ///
+    /// "It also occurs when no window currently has
+    /// the keyboard focus; in this case, the WM_SYSKEYDOWN message is sent to
+    /// the active window. The window that receives the message can distinguish
+    /// between these two contexts by checking the context code in the lParam
+    /// parameter."
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// From Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-syskeydown
+    func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
+    /// "Posted to the window with the keyboard focus when the user releases a
+    /// key that was pressed while the ALT key was held down."
+    ///
+    /// "It also occurs when no window currently has the keyboard focus; in this
+    /// case, the WM_SYSKEYUP message is sent to the active window. The window
+    /// that receives the message can distinguish between these two contexts by
+    /// checking the context code in the lParam parameter."
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// From Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-syskeyup
+    func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
+        return nil
     }
 
     // MARK: Initialization and message processing
@@ -228,7 +302,7 @@ fileprivate extension Win32Window {
 
         switch Int32(uMsg) {
         case WM_DESTROY:
-            onClose()
+            onClose(message)
             return 0
 
         case WM_PAINT:
@@ -240,32 +314,25 @@ fileprivate extension Win32Window {
             return 0
 
         case WM_MOUSEMOVE:
-            onMouseMove(message)
-            return 0
+            return onMouseMove(message)
 
         case WM_LBUTTONDOWN:
-            onLeftMouseDown(message)
-            return 0
+            return onLeftMouseDown(message)
 
         case WM_LBUTTONUP:
-            onLeftMouseUp(message)
-            return 0
+            return onLeftMouseUp(message)
 
         case WM_MBUTTONDOWN:
-            onMiddleMouseDown(message)
-            return 0
+            return onMiddleMouseDown(message)
 
         case WM_MBUTTONUP:
-            onMiddleMouseUp(message)
-            return 0
+            return onMiddleMouseUp(message)
 
         case WM_RBUTTONDOWN:
-            onRightMouseDown(message)
-            return 0
+            return onRightMouseDown(message)
 
         case WM_RBUTTONUP:
-            onRightMouseUp(message)
-            return 0
+            return onRightMouseUp(message)
 
         case WM_DPICHANGED:
             onDPIChanged(message)

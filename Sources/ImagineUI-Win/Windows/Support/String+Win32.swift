@@ -23,4 +23,11 @@ extension String {
             return try block(p)
         }
     }
+
+    public func withUnsafeLPCWSTRPointer<T>(_ block: (LPCWSTR) throws -> T) rethrows -> T {
+        let w = wide
+        return try w.withUnsafeBufferPointer { p in
+            return try block(p.baseAddress!)
+        }
+    }
 }

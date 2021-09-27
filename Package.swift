@@ -1,6 +1,42 @@
 // swift-tools-version:5.5
 import PackageDescription
 
+var executableTarget: Target = .executableTarget(
+    name: "ImagineUI-WinSample",
+    dependencies: [
+        "ImagineUI-Win",
+        .product(name: "Logging", package: "swift-log"),
+    ],
+    exclude: [
+        "ImagineUI-WinSample.exe.manifest",
+    ],
+    resources: [
+        .process("Resources/NotoSans-Regular.ttf")
+    ],
+    swiftSettings: [],
+    linkerSettings: [
+        .linkedLibrary("User32"),
+        .linkedLibrary("ComCtl32"),
+    ]
+)
+
+#if true
+
+// Append settings required to run the executable on Windows
+executableTarget.swiftSettings?.append(
+    .unsafeFlags([
+        "-parse-as-library",
+    ])
+)
+executableTarget.linkerSettings?.append(
+    .unsafeFlags([
+        "-Xlinker",
+        "/SUBSYSTEM:WINDOWS",
+    ])
+)
+
+#endif
+
 let package = Package(
     name: "ImagineUI-Win",
     products: [
@@ -16,6 +52,7 @@ let package = Package(
         .package(url: "https://github.com/compnerd/swift-com.git", .branch("main")),
     ],
     targets: [
+        executableTarget,
         .target(
             name: "ImagineUI-Win",
             dependencies: [
@@ -23,31 +60,6 @@ let package = Package(
                 .product(name: "Blend2DRenderer", package: "ImagineUI"),
                 .product(name: "SwiftCOM", package: "swift-com"),
                 .product(name: "Logging", package: "swift-log"),
-            ]),
-        .executableTarget(
-            name: "ImagineUI-WinSample",
-            dependencies: [
-                "ImagineUI-Win",
-                .product(name: "Logging", package: "swift-log"),
-            ],
-            exclude: [
-                "ImagineUI-WinSample.exe.manifest",
-            ],
-            resources: [
-                .process("Resources/NotoSans-Regular.ttf")
-            ],
-            swiftSettings: [
-                .unsafeFlags([
-                    "-parse-as-library",
-                ])
-            ],
-            linkerSettings: [
-                .linkedLibrary("User32"),
-                .linkedLibrary("ComCtl32"),
-                .unsafeFlags([
-                    "-Xlinker",
-                    "/SUBSYSTEM:WINDOWS",
-                ])
             ]),
         .testTarget(
             name: "ImagineUI-WinTests",
