@@ -14,43 +14,17 @@ public class Blend2DWindow: Win32Window {
 
     /// Returns the computed size for `content`, based on the window's scale
     /// divided by `dpiScalingFactor`.
-    public var contentSize: UIIntSize {
+    public var scaledContentSize: UIIntSize {
         size.asUIIntSize.scaled(by: 1.0 / dpiScalingFactor)
     }
 
-    var usingDoubleBuffer: Bool { _immediateBuffer != nil && secondaryBuffer != nil }
-
-    /// If non-nil, fetching `immediateBuffer` returns this value, if `nil`,
-    /// fetching `immediateBuffer` returns `secondaryBuffer.blImage`, instead.
-    var _immediateBuffer: BLImage?
-
-    /// An immediate buffer where ``content`` is drawn to it's full scale.
-    var immediateBuffer: BLImage? {
-        return _immediateBuffer ?? secondaryBuffer?.blImage
+    /// Content size, equal to this window's size scaled by the current `dpiScalingFactor`
+    /// value.
+    public var contentSize: UIIntSize {
+        size.asUIIntSize.scaled(by: dpiScalingFactor)
     }
 
-    /// Returns the render scale for content that must be drawn on the
-    /// `immediateBuffer` with a 1:1 relationship between rendered pixel and
-    /// screen pixel.
-    var immediateBufferRenderScale: BLPoint {
-        (content.preferredRenderScale * dpiScalingFactor).asBLPoint
-    }
-
-    /// Expected size for immediate buffer, calculated by scaling the content's
-    /// size by its `renderScale` and the current `dpiScalingFactor`.
-    var immediateBufferSize: BLSizeI {
-        size.asBLSizeI.scaled(by: immediateBufferRenderScale)
-    }
-
-    /// A secondary buffer where ``immediateBuffer`` is drawn to, scaling up or
-    /// down to fit the window's size.
-    var secondaryBuffer: Blend2DImageBuffer?
-
-    /// Expected size for secondary buffer, calculated by scaling the window's
-    /// size by its DPI scaling.
-    var secondaryBufferSize: BLSizeI {
-        size.asBLSizeI.scaled(by: dpiScalingFactor)
-    }
+    var buffer: Blend2DGDIDoubleBuffer?
 
     /// Event raised when the window has been closed.
     @Event public var closed: EventSourceWithSender<Blend2DWindow, Void>
@@ -80,7 +54,7 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func resizeApp() {
-        content.resize(contentSize)
+        content.resize(scaledContentSize)
 
         recreateBuffers()
 
@@ -88,23 +62,17 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func recreateBuffers() {
-        _immediateBuffer = nil
-        secondaryBuffer = nil
+        buffer = nil
 
-        guard content.size > .zero else {
+        guard contentSize > .zero else {
+            return
+        }
+        guard let hdc = GetDC(nil) else {
+            WinLogger.warning("Failed to get device context for screen")
             return
         }
 
-        if let hdc = GetDC(hwnd) {
-            secondaryBuffer = Blend2DImageBuffer(size: secondaryBufferSize, hdc: hdc)
-        } else {
-            WinLogger.warning("Failed to create device context for secondary buffer")
-            secondaryBuffer = nil
-        }
-
-        if content.preferredRenderScale != 1 {
-            _immediateBuffer = BLImage(size: immediateBufferSize, format: .xrgb32)
-        }
+        buffer = .init(contentSize: contentSize.asBLSizeI, format: .xrgb32, hdc: hdc, scale: content.preferredRenderScale)
     }
 
     // MARK: Events
@@ -120,7 +88,7 @@ public class Blend2DWindow: Win32Window {
 
         resizeApp()
 
-        WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), immediateBufferSize: \(immediateBufferSize), secondaryBufferSize: \(secondaryBufferSize)")
+        WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), content.size: \(content.size)")
     }
 
     override func onClose(_ message: WindowMessage) {
@@ -140,60 +108,34 @@ public class Blend2DWindow: Win32Window {
         defer { needsDisplay = false }
 
         var ps = PAINTSTRUCT()
-        let hdc = BeginPaint(hwnd, &ps)
+        guard let hdc = BeginPaint(hwnd, &ps) else {
+            WinLogger.warning("BeginPaint returned a nil device context handle")
+            return
+        }
         defer {
             EndPaint(hwnd, &ps)
         }
 
-        guard let secondaryBuffer = secondaryBuffer else {
+        guard let buffer = buffer else {
             return
         }
 
         let uiRect = ps.rcPaint.asUIRectangle.scaled(by: 1 / dpiScalingFactor)
 
-        paintImmediateBuffer(uiRect)
-        if usingDoubleBuffer {
-            paintScreenBuffer(uiRect)
+        buffer.renderingToBuffer { (buffer, scale) in
+            paintImmediateBuffer(image: buffer, scale: scale, rect: uiRect)
         }
 
-        let w = ps.rcPaint.right - ps.rcPaint.left
-        let h = ps.rcPaint.bottom - ps.rcPaint.top
-        secondaryBuffer.pushPixelsToGDI(uiRect)
-        secondaryBuffer.bitBlt(to: hdc, ps.rcPaint.left, ps.rcPaint.top, w, h, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY)
+        buffer.renderBufferToScreen(hdc, rect: ps.rcPaint)
     }
 
-    private func paintImmediateBuffer(_ rect: UIRectangle) {
-        guard let immediateBuffer = immediateBuffer else {
-            return
-        }
-
+    private func paintImmediateBuffer(image: BLImage, scale: UIVector, rect: UIRectangle) {
         let options = BLContext.CreateOptions(threadCount: 0) // TODO: Multi-threading on Windows is crashing, disable threads in Blend2D for now.
-        let ctx = BLContext(image: immediateBuffer, options: options)!
+        let ctx = BLContext(image: image, options: options)!
 
         let clip = Blend2DClipRegion(region: .init(rectangle: .init(rounding: rect.asBLRect)))
 
-        content.render(context: ctx, renderScale: immediateBufferRenderScale.asUIVector, clipRegion: clip)
-
-        ctx.flush(flags: .sync)
-        ctx.end()
-    }
-
-    private func paintScreenBuffer(_ rect: UIRectangle) {
-        guard let immediateBuffer = immediateBuffer else { return }
-        guard let secondaryBuffer = secondaryBuffer else { return }
-
-        if immediateBuffer === secondaryBuffer {
-            WinLogger.warning("Attempted to paint screen buffer in single-buffered render mode.")
-            return
-        }
-
-        guard let ctx = BLContext(image: secondaryBuffer.blImage) else { return }
-
-        ctx.compOp = .sourceCopy
-        ctx.setPatternQualityHint(.bilinear)
-        ctx.setRenderingQualityHint(.antialias)
-        ctx.clipToRect(rect.asBLRect)
-        ctx.blitScaledImage(immediateBuffer, rectangle: BLRectI(location: .zero, size: secondaryBufferSize))
+        content.render(context: ctx, renderScale: scale * dpiScalingFactor, clipRegion: clip)
 
         ctx.flush(flags: .sync)
         ctx.end()
