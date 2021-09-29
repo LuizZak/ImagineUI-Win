@@ -10,6 +10,10 @@ extension String {
     internal init(from utf16: UnsafePointer<WCHAR>) {
         self = String(decodingCString: utf16, as: UTF16.self)
     }
+
+    internal init(fromUtf16 utf16: WCHAR) {
+        self.init(from: [utf16])
+    }
 }
 
 extension String {

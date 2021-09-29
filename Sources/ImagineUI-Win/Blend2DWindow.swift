@@ -319,9 +319,10 @@ public class Blend2DWindow: Win32Window {
         let x = GET_X_LPARAM(message.lParam)
         let y = GET_Y_LPARAM(message.lParam)
         let location = UIVector(x: Double(x), y: Double(y)) / dpiScalingFactor
-
         var buttons: MouseButton = []
+        var modifiers: KeyboardModifier = []
 
+        // Buttons
         if IS_BIT_ON(message.wParam, MK_LBUTTON) {
             buttons.insert(.left)
         }
@@ -331,12 +332,20 @@ public class Blend2DWindow: Win32Window {
         if IS_BIT_ON(message.wParam, MK_RBUTTON) {
             buttons.insert(.right)
         }
+        // Modifiers
+        if IS_BIT_ON(message.wParam, MK_CONTROL) {
+            modifiers.insert(.control)
+        }
+        if IS_BIT_ON(message.wParam, MK_SHIFT) {
+            modifiers.insert(.shift)
+        }
 
         let event = MouseEventArgs(
             location: location,
             buttons: buttons,
             delta: .zero,
-            clicks: 0
+            clicks: 0,
+            modifiers: modifiers
         )
 
         return event

@@ -60,7 +60,7 @@ public class Win32Window {
             0,                               // Optional window styles.
             wc.lpszClassName,                // Window class
             // TODO: Change window title text
-            "Learn to Program Windows".wide, // Window text
+            "ImagineUI-Win Sample".wide,     // Window text
             WS_OVERLAPPEDWINDOW,             // Window style
 
             // Size and position
