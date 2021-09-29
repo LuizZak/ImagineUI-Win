@@ -34,6 +34,10 @@ class Win32KeyboardManager {
     func onKeyChar(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
+
+    func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
 }
 
 protocol Win32KeyboardManagerDelegate: AnyObject {

@@ -281,6 +281,14 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onKeyChar(message)
     }
 
+    override func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
+        guard let keyboardManager = keyboardManager else {
+            return super.onKeyDeadChar(message)
+        }
+
+        return keyboardManager.onKeyDeadChar(message)
+    }
+
     // MARK: Message translation
 
     private func makeKeyEventArgs(_ message: WindowMessage) -> KeyEventArgs {
