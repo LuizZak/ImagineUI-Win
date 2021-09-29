@@ -1,4 +1,5 @@
 import WinSDK
+import ImagineUI
 
 /// Digests keyboard input and invokes a delegate with information about processed
 /// input keys.
@@ -36,5 +37,7 @@ class Win32KeyboardManager {
 }
 
 protocol Win32KeyboardManagerDelegate: AnyObject {
-    func keyboardManager(_ manager: Win32KeyboardManager)
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: KeyPressEventArgs)
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: KeyEventArgs)
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: KeyEventArgs)
 }

@@ -5,8 +5,8 @@ import WinSDK.User
 import WinSDK.WinGDI
 
 public class Blend2DWindow: Win32Window {
-    var keyboardManager: Win32KeyboardManager?
-    var buffer: Blend2DGDIDoubleBuffer?
+    private var keyboardManager: Win32KeyboardManager?
+    private var buffer: Blend2DGDIDoubleBuffer?
 
     /// Returns the computed size for `content`, based on the window's scale
     /// divided by `dpiScalingFactor`.
@@ -43,16 +43,24 @@ public class Blend2DWindow: Win32Window {
     override func initialize() {
         super.initialize()
 
-        globalTextClipboard = Win32TextClipboard()
-        keyboardManager = Win32KeyboardManager(hwnd: hwnd)
-
-        content.delegate = self
+        initializeClipboard()
+        initializeKeyboardManager()
+        initializeContent()
 
         recreateBuffers()
     }
 
-    func update() {
-        content.update(Stopwatch.global.timeIntervalSinceStart())
+    private func initializeKeyboardManager() {
+        keyboardManager = Win32KeyboardManager(hwnd: hwnd)
+        keyboardManager?.delegate = self
+    }
+
+    private func initializeClipboard() {
+        globalTextClipboard = Win32TextClipboard()
+    }
+
+    private func initializeContent() {
+        content.delegate = self
     }
 
     private func resizeApp() {
@@ -75,6 +83,10 @@ public class Blend2DWindow: Win32Window {
         }
 
         buffer = .init(contentSize: contentSize.asBLSizeI, format: .xrgb32, hdc: hdc, scale: content.preferredRenderScale)
+    }
+
+    func update() {
+        content.update(Stopwatch.global.timeIntervalSinceStart())
     }
 
     // MARK: Events
@@ -222,43 +234,52 @@ public class Blend2DWindow: Win32Window {
     // MARK: Keyboard events
 
     override func onKeyDown(_ message: WindowMessage) -> LRESULT? {
-        let event = makeKeyEventArgs(message)
-        content.keyDown(event: event)
-        WinLogger.info("keyDown: \(message)")
-        return 0
+        guard let keyboardManager = keyboardManager else {
+            return super.onKeyDown(message)
+        }
+
+        return keyboardManager.onKeyDown(message)
     }
 
     override func onKeyUp(_ message: WindowMessage) -> LRESULT? {
-        let event = makeKeyEventArgs(message)
-        content.keyUp(event: event)
+        guard let keyboardManager = keyboardManager else {
+            return super.onKeyUp(message)
+        }
 
-        return 0
+        return keyboardManager.onKeyUp(message)
     }
 
-    // TODO: Properly handle WM_CHAR events
+    override func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
+        guard let keyboardManager = keyboardManager else {
+            return super.onSystemKeyDown(message)
+        }
 
-    /*
+        return keyboardManager.onSystemKeyDown(message)
+    }
+
+    override func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
+        guard let keyboardManager = keyboardManager else {
+            return super.onSystemKeyUp(message)
+        }
+
+        return keyboardManager.onSystemKeyUp(message)
+    }
+
+    override func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
+        guard let keyboardManager = keyboardManager else {
+            return super.onKeyCharDown(message)
+        }
+
+        return keyboardManager.onKeyCharDown(message)
+    }
+
     override func onKeyChar(_ message: WindowMessage) -> LRESULT? {
-        guard let event = makeKeyPressEventArgs(message) else {
-            WinLogger.info("Coult not convert key press message \(message): Invalid character.")
-            return nil
+        guard let keyboardManager = keyboardManager else {
+            return super.onKeyChar(message)
         }
 
-        content.keyPress(event: event)
-
-        return 0
+        return keyboardManager.onKeyChar(message)
     }
-
-    private func makeKeyPressEventArgs(_ message: WindowMessage) -> KeyPressEventArgs? {
-        guard let keyChar = Character(fromWM_CHAR: wchar_t(truncatingIfNeeded: message.wParam)) else {
-            return nil
-        }
-
-        let modifiers: KeyboardModifier = makeKeyboardModifiers(message)
-
-        return KeyPressEventArgs(keyChar: keyChar, modifiers: modifiers)
-    }
-    */
 
     // MARK: Message translation
 
@@ -311,6 +332,20 @@ public class Blend2DWindow: Win32Window {
         )
 
         return event
+    }
+}
+
+extension Blend2DWindow: Win32KeyboardManagerDelegate {
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: KeyPressEventArgs) {
+        content.keyPress(event: event)
+    }
+
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: KeyEventArgs) {
+        content.keyDown(event: event)
+    }
+
+    func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: KeyEventArgs) {
+        content.keyUp(event: event)
     }
 }
 
