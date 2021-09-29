@@ -275,7 +275,74 @@ public class Blend2DWindow: Win32Window {
         return super.onRightMouseUp(message)
     }
 
-    func makeMouseEventArgs(_ message: WindowMessage) -> MouseEventArgs {
+    // MARK: Keyboard events
+
+    override func onKeyDown(_ message: WindowMessage) -> LRESULT? {
+        let event = makeKeyEventArgs(message)
+        content.keyDown(event: event)
+        WinLogger.info("keyDown: \(message)")
+        return 0
+    }
+
+    override func onKeyUp(_ message: WindowMessage) -> LRESULT? {
+        let event = makeKeyEventArgs(message)
+        content.keyUp(event: event)
+
+        return 0
+    }
+
+    // TODO: Properly handle WM_CHAR events
+
+    /*
+    override func onKeyChar(_ message: WindowMessage) -> LRESULT? {
+        guard let event = makeKeyPressEventArgs(message) else {
+            WinLogger.info("Coult not convert key press message \(message): Invalid character.")
+            return nil
+        }
+
+        content.keyPress(event: event)
+
+        return 0
+    }
+
+    private func makeKeyPressEventArgs(_ message: WindowMessage) -> KeyPressEventArgs? {
+        guard let keyChar = Character(fromWM_CHAR: wchar_t(truncatingIfNeeded: message.wParam)) else {
+            return nil
+        }
+
+        let modifiers: KeyboardModifier = makeKeyboardModifiers(message)
+
+        return KeyPressEventArgs(keyChar: keyChar, modifiers: modifiers)
+    }
+    */
+
+    // MARK: Message translation
+
+    private func makeKeyEventArgs(_ message: WindowMessage) -> KeyEventArgs {
+        let vkCode: Keys = Keys(fromWin32VK: LOWORD(message.wParam))
+        let keyChar: String? = nil
+        let modifiers: KeyboardModifier = makeKeyboardModifiers(message)
+
+        return KeyEventArgs(keyCode: vkCode, keyChar: keyChar, modifiers: modifiers)
+    }
+
+    private func makeKeyboardModifiers(_ message: WindowMessage) -> KeyboardModifier {
+        var modifiers: KeyboardModifier = []
+
+        if IS_BIT_ON(HIWORD(message.lParam), KF_ALTDOWN) {
+            modifiers.insert(.alt)
+        }
+        if IS_HIBIT_ON(GetKeyState(VK_CONTROL)) {
+            modifiers.insert(.control)
+        }
+        if IS_HIBIT_ON(GetKeyState(VK_SHIFT)) {
+            modifiers.insert(.shift)
+        }
+
+        return modifiers
+    }
+
+    private func makeMouseEventArgs(_ message: WindowMessage) -> MouseEventArgs {
         let x = GET_X_LPARAM(message.lParam)
         let y = GET_Y_LPARAM(message.lParam)
         let location = UIVector(x: Double(x), y: Double(y)) / dpiScalingFactor
@@ -309,7 +376,8 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
     }
 
     public func invalidate(bounds: UIRectangle) {
-        setNeedsDisplay(bounds.scaled(by: dpiScalingFactor).asRect)
+        let screenBounds = bounds.scaled(by: dpiScalingFactor)
+        setNeedsDisplay(screenBounds.rounded().asRect)
     }
 
     public func setMouseCursor(_ cursor: MouseCursorKind) {
@@ -351,5 +419,11 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
 
     public func setMouseHiddenUntilMouseMoves() {
         // TODO: Implement cursor hiding
+    }
+
+    public func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
+        if newFirstResponder != nil {
+            SetFocus(hwnd)
+        }
     }
 }

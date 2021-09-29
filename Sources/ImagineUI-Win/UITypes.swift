@@ -169,6 +169,15 @@ extension UIRectangle {
               right: LONG(self.location.x + self.size.width),
               bottom: LONG(self.location.y + self.size.height))
     }
+
+    func rounded() -> UIRectangle {
+        let x = floor(self.location.x)
+        let y = floor(self.location.y)
+        let width = ceil(self.size.width)
+        let height = ceil(self.size.height)
+
+        return .init(x: x, y: y, width: width, height: height)
+    }
 }
 
 extension RECT {

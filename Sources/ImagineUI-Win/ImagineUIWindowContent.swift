@@ -142,6 +142,10 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
         controlSystem.onKeyUp(event)
     }
 
+    open func keyPress(event: KeyPressEventArgs) {
+        controlSystem.onKeyPress(event)
+    }
+
     open func didClose() {
 
     }
@@ -172,6 +176,10 @@ extension ImagineUIWindowContent: DefaultControlSystemDelegate {
 
     open func setMouseHiddenUntilMouseMoves() {
         delegate?.setMouseHiddenUntilMouseMoves()
+    }
+
+    open func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
+        delegate?.firstResponderChanged(newFirstResponder)
     }
 }
 

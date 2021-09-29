@@ -2,16 +2,36 @@ import WinSDK
 
 @_transparent
 internal func LOWORD<T: FixedWidthInteger>(_ dword: T) -> WORD {
-    WORD(DWORD_PTR(dword) >>  0 & 0xffff)
+    WORD(truncatingIfNeeded: DWORD_PTR(truncatingIfNeeded: dword) >>  0 & 0xffff)
 }
 
 @_transparent
 internal func HIWORD<T: FixedWidthInteger>(_ dword: T) -> WORD {
-    WORD(DWORD_PTR(dword) >> 16 & 0xffff)
+    WORD(truncatingIfNeeded: DWORD_PTR(truncatingIfNeeded: dword) >> 16 & 0xffff)
+}
+
+@_transparent
+internal func IS_HIBIT_ON<T: FixedWidthInteger>(_ dword: T) -> Bool {
+    (dword >> (T.bitWidth - 1)) & 1 == 1
+}
+
+@_transparent
+internal func IS_LOBIT_ON<T: FixedWidthInteger>(_ dword: T) -> Bool {
+    dword & 1 == 1
 }
 
 @_transparent
 internal func IS_BIT_ON<T: FixedWidthInteger>(_ lp: WPARAM, _ mask: T) -> Bool {
+    T(lp) & mask != 0
+}
+
+@_transparent
+internal func IS_BIT_ON<T: FixedWidthInteger>(_ lp: LPARAM, _ mask: T) -> Bool {
+    T(lp) & mask != 0
+}
+
+@_transparent
+internal func IS_BIT_ON<T: FixedWidthInteger>(_ lp: WORD, _ mask: T) -> Bool {
     T(lp) & mask != 0
 }
 

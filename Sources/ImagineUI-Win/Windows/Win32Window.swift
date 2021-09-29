@@ -247,6 +247,26 @@ public class Win32Window {
         return nil
     }
 
+    /// Called when the user presses a keyboard key while this window has focus.
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keydown
+    func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
+    /// Called when the user presses a keyboard key while this window has focus.
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-char
+    func onKeyChar(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
     // MARK: Initialization and message processing
 
     internal func initialize() {
@@ -333,6 +353,21 @@ fileprivate extension Win32Window {
 
         case WM_RBUTTONUP:
             return onRightMouseUp(message)
+
+        case WM_KEYDOWN:
+            return onKeyDown(message)
+
+        case WM_KEYUP:
+            return onKeyUp(message)
+
+        case WM_SYSKEYDOWN:
+            return onSystemKeyDown(message)
+
+        case WM_SYSKEYUP:
+            return onSystemKeyUp(message)
+
+        case WM_CHAR:
+            return onKeyChar(message)
 
         case WM_DPICHANGED:
             onDPIChanged(message)

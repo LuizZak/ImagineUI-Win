@@ -23,6 +23,7 @@ public protocol Blend2DWindowContentType: AnyObject {
 
     func keyDown(event: KeyEventArgs)
     func keyUp(event: KeyEventArgs)
+    func keyPress(event: KeyPressEventArgs)
 
     // MARK: Events
 
@@ -34,4 +35,5 @@ public protocol Blend2DWindowContentDelegate: AnyObject {
     func invalidate(bounds: UIRectangle)
     func setMouseCursor(_ cursor: MouseCursorKind)
     func setMouseHiddenUntilMouseMoves()
+    func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?)
 }

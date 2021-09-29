@@ -288,6 +288,10 @@ class SampleWindow: Blend2DWindowContentType {
         controlSystem.onKeyUp(event)
     }
 
+    func keyPress(event: KeyPressEventArgs) {
+        controlSystem.onKeyPress(event)
+    }
+
     func createRenderSettingsWindow() {
         func toggleFlag(_ sample: SampleWindow,
                         _ flag: DebugDraw.DebugDrawFlags,
@@ -415,6 +419,10 @@ extension SampleWindow: DefaultControlSystemDelegate {
 
     func setMouseHiddenUntilMouseMoves() {
         delegate?.setMouseHiddenUntilMouseMoves()
+    }
+
+    func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
+        delegate?.firstResponderChanged(newFirstResponder)
     }
 }
 
