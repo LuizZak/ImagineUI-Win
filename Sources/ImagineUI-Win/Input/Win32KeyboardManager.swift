@@ -1,7 +1,10 @@
 import WinSDK
 
+/// Digests keyboard input and invokes a delegate with information about processed
+/// input keys.
 class Win32KeyboardManager {
     let hwnd: HWND
+    weak var delegate: Win32KeyboardManagerDelegate?
 
     init(hwnd: HWND) {
         self.hwnd = hwnd
@@ -30,4 +33,8 @@ class Win32KeyboardManager {
     func onKeyChar(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
+}
+
+protocol Win32KeyboardManagerDelegate: AnyObject {
+    func keyboardManager(_ manager: Win32KeyboardManager)
 }

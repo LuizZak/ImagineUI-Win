@@ -5,26 +5,27 @@ import WinSDK.User
 import WinSDK.WinGDI
 
 public class Blend2DWindow: Win32Window {
+    var keyboardManager: Win32KeyboardManager?
+    var buffer: Blend2DGDIDoubleBuffer?
+
+    /// Returns the computed size for `content`, based on the window's scale
+    /// divided by `dpiScalingFactor`.
+    var scaledContentSize: UIIntSize {
+        size.asUIIntSize.scaled(by: 1.0 / dpiScalingFactor)
+    }
+
+    /// Content size, equal to this window's size scaled by the current `dpiScalingFactor`
+    /// value.
+    var contentSize: UIIntSize {
+        size.asUIIntSize.scaled(by: dpiScalingFactor)
+    }
+
     /// Rate of update calls per second.
     /// Affects how much the content.update() function is called each second.
     public var updateRate: Double = 60
 
     public let updateStopwatch = Stopwatch.start()
     public let content: Blend2DWindowContentType
-
-    /// Returns the computed size for `content`, based on the window's scale
-    /// divided by `dpiScalingFactor`.
-    public var scaledContentSize: UIIntSize {
-        size.asUIIntSize.scaled(by: 1.0 / dpiScalingFactor)
-    }
-
-    /// Content size, equal to this window's size scaled by the current `dpiScalingFactor`
-    /// value.
-    public var contentSize: UIIntSize {
-        size.asUIIntSize.scaled(by: dpiScalingFactor)
-    }
-
-    var buffer: Blend2DGDIDoubleBuffer?
 
     /// Event raised when the window has been closed.
     @Event public var closed: EventSourceWithSender<Blend2DWindow, Void>
@@ -43,6 +44,7 @@ public class Blend2DWindow: Win32Window {
         super.initialize()
 
         globalTextClipboard = Win32TextClipboard()
+        keyboardManager = Win32KeyboardManager(hwnd: hwnd)
 
         content.delegate = self
 

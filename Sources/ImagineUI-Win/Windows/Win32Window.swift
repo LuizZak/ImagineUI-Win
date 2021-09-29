@@ -30,7 +30,7 @@ public class Win32Window {
     /// to changes in `self.dpi`.
     private(set) var dpiScalingFactor: Double = 1.0
 
-    internal var hwnd: HWND?
+    internal var hwnd: HWND
 
     init(size: Size) {
         self.size = size
@@ -38,8 +38,60 @@ public class Win32Window {
         // TODO: Change this
         className = "Sample Window Class".wide
 
+        let handle = GetModuleHandleW(nil)
+
+        let IDC_ARROW: UnsafePointer<WCHAR> =
+            UnsafePointer<WCHAR>(bitPattern: 32512)!
+
+        // Register the window class.
+        var wc = WNDCLASSW()
+        className.withUnsafeBufferPointer { p in
+            wc.style         = UINT(CS_HREDRAW | CS_VREDRAW)
+            wc.hCursor       = LoadCursorW(nil, IDC_ARROW)
+            wc.lpfnWndProc   = DefWindowProcW
+            wc.hInstance     = handle
+            wc.lpszClassName = p.baseAddress!
+
+            RegisterClassW(&wc)
+        }
+
+        // Create the window.
+        let hwnd = CreateWindowExW(
+            0,                               // Optional window styles.
+            wc.lpszClassName,                // Window class
+            // TODO: Change window title text
+            "Learn to Program Windows".wide, // Window text
+            WS_OVERLAPPEDWINDOW,             // Window style
+
+            // Size and position
+            CW_USEDEFAULT, CW_USEDEFAULT, Int32(size.width), Int32(size.height),
+
+            nil,     // Parent window
+            nil,     // Menu
+            handle,  // Instance handle
+            nil      // Additional application data
+        )
+
+        guard let hwnd = hwnd else {
+            WinLogger.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
+            fatalError()
+        }
+
+        self.hwnd = hwnd
+
+        _ = SetWindowSubclass(hwnd,
+                              windowProc,
+                              UINT_PTR.max,
+                              unsafeBitCast(self as AnyObject, to: DWORD_PTR.self))
+
         initialize()
     }
+
+    internal func initialize() {
+
+    }
+
+    // MARK: Display
 
     public func show() {
         ShowWindow(hwnd, SW_RESTORE)
@@ -267,53 +319,6 @@ public class Win32Window {
         return nil
     }
 
-    // MARK: Initialization and message processing
-
-    internal func initialize() {
-        let handle = GetModuleHandleW(nil)
-
-        let IDC_ARROW: UnsafePointer<WCHAR> =
-            UnsafePointer<WCHAR>(bitPattern: 32512)!
-
-        // Register the window class.
-        var wc = WNDCLASSW()
-        className.withUnsafeBufferPointer { p in
-            wc.style         = UINT(CS_HREDRAW | CS_VREDRAW)
-            wc.hCursor       = LoadCursorW(nil, IDC_ARROW)
-            wc.lpfnWndProc   = DefWindowProcW
-            wc.hInstance     = handle
-            wc.lpszClassName = p.baseAddress!
-
-            RegisterClassW(&wc)
-        }
-
-        // Create the window.
-        hwnd = CreateWindowExW(
-            0,                               // Optional window styles.
-            wc.lpszClassName,                // Window class
-            // TODO: Change window title text
-            "Learn to Program Windows".wide, // Window text
-            WS_OVERLAPPEDWINDOW,             // Window style
-
-            // Size and position
-            CW_USEDEFAULT, CW_USEDEFAULT, Int32(size.width), Int32(size.height),
-
-            nil,     // Parent window
-            nil,     // Menu
-            handle,  // Instance handle
-            nil      // Additional application data
-        )
-
-        if (hwnd == nil) {
-            WinLogger.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
-            fatalError()
-        }
-
-        _ = SetWindowSubclass(hwnd,
-                              windowProc,
-                              UINT_PTR.max,
-                              unsafeBitCast(self as AnyObject, to: DWORD_PTR.self))
-    }
 }
 
 fileprivate extension Win32Window {
