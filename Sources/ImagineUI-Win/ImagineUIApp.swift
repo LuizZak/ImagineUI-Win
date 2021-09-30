@@ -92,8 +92,8 @@ public class ImagineUIApp {
         var nExitCode: Int32 = EXIT_SUCCESS
 
         mainLoop: while true {
-            // Process all messages in thread's message queue; for GUI applications UI
-            // events must have high priority.
+            // Process all messages in thread's message queue; for GUI applications
+            // UI events must have high priority.
             while PeekMessageW(&msg, nil, 0, 0, UINT(PM_REMOVE)) {
                 if msg.message == UINT(WM_QUIT) {
                     nExitCode = Int32(msg.wParam)
@@ -106,21 +106,22 @@ public class ImagineUIApp {
 
             var limitDate: Date? = nil
             repeat {
-                // Execute Foundation.RunLoop once and determine the next time the timer
-                // fires. At this point handle all Foundation.RunLoop timers, sources and
-                // Dispatch.DispatchQueue.main tasks
+                // Execute Foundation.RunLoop once and determine the next time
+                // the timer fires. At this point handle all Foundation.RunLoop
+                // timers, sources and Dispatch.DispatchQueue.main tasks
                 limitDate = RunLoop.main.limitDate(forMode: .default)
 
-                // If Foundation.RunLoop doesn't contain any timers or the timers should
-                // not be running right now, we interrupt the current loop or otherwise
-                // continue to the next iteration.
+                // If Foundation.RunLoop doesn't contain any timers or the timers
+                // should not be running right now, we interrupt the current loop
+                // or otherwise continue to the next iteration.
             } while (limitDate?.timeIntervalSinceNow ?? -1) <= 0
 
-            // Yield control to other threads.  If Foundation.RunLoop contains a timer
-            // to execute, we wait until a new message is placed in the thread's message
-            // queue or the timer must fire, otherwise we proceed to the next iteration
-            // of mainLoop, using 0 as the wait timeout.
-            _ = WaitMessage(DWORD(exactly: limitDate?.timeIntervalSinceNow ?? 0 * 1000) ?? DWORD.max)
+            // Yield control to other threads.  If Foundation.RunLoop contains a
+            // timer to execute, we wait until a new message is placed in the
+            // thread's message queue or the timer must fire, otherwise we proceed
+            // to the next iteration of mainLoop, using 0 as the wait timeout.
+            //_ = WaitMessage(DWORD(exactly: (limitDate?.timeIntervalSinceNow ?? 0) * 1000) ?? DWORD.max)
+            _ = WaitMessage(limitDate: limitDate)
         }
 
         return nExitCode
@@ -146,6 +147,20 @@ private let pApplicationStateChangeRoutine: PAPPSTATE_CHANGE_ROUTINE = { (quiesc
     } else {
         app.didMoveToBackground()
     }
+}
+
+// Waits for a message on the message queue, returning when either a message has
+// arrived or the timeout specified has expired.
+private func WaitMessage(limitDate: Date?) -> Bool {
+    guard let limitDate = limitDate else {
+        return WaitMessage(.max)
+    }
+    guard limitDate.timeIntervalSinceNow < Double(DWORD.max) else {
+        return WaitMessage(.max)
+    }
+
+    let milliseconds = DWORD(limitDate.timeIntervalSinceNow * 1000)
+    return WaitMessage(milliseconds)
 }
 
 // Waits for a message on the message queue, returning when either a message has

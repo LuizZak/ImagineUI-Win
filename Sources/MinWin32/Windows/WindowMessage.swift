@@ -18,7 +18,7 @@ extension WindowMessage {
         Self.debugDescription(for: uMsg)
     }
 
-    static func debugDescription(for uMsg: UINT) -> String {
+    public static func debugDescription(for uMsg: UINT) -> String {
         return messages[Int(uMsg)] ?? "Unknown Message"
     }
 

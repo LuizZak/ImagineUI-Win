@@ -12,7 +12,7 @@ public protocol Blend2DWindowContentType: AnyObject {
     func didEndLiveResize()
     func resize(_ newSize: UIIntSize)
 
-    func update(_ time: TimeInterval)
+    // func update(_ time: TimeInterval)
     func performLayout()
     func render(context ctx: BLContext, renderScale: UIVector, clipRegion: ClipRegion)
 

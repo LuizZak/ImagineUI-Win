@@ -116,7 +116,7 @@ open class Win32Window {
 
     // MARK: Window events
 
-    /// Called when the window has received  `WM_DESTROY` message.
+    /// Called when the window has received `WM_DESTROY` message.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
     open func onClose(_ message: WindowMessage) {

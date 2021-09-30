@@ -1,3 +1,4 @@
+import Foundation
 import WinSDK
 import WinSDK.User
 import WinSDK.WinGDI
@@ -86,10 +87,6 @@ public class Blend2DWindow: Win32Window {
         buffer = .init(contentSize: contentSize.asBLSizeI, format: .xrgb32, hdc: hdc, scale: content.preferredRenderScale)
     }
 
-    public func update() {
-        content.update(Stopwatch.global.timeIntervalSinceStart())
-    }
-
     // MARK: Events
 
     public override func onResize(_ message: WindowMessage) {
@@ -115,8 +112,6 @@ public class Blend2DWindow: Win32Window {
     }
 
     public override func onPaint(_ message: WindowMessage) {
-        update()
-
         guard needsDisplay else {
             return
         }

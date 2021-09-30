@@ -7,6 +7,7 @@ import ImagineUI_Win
 
 class SampleWindow: Blend2DWindowContentType {
     private var lastFrame: TimeInterval = 0
+    private var timer: Timer?
     weak var delegate: Blend2DWindowContentDelegate?
     var bounds: BLRect
 
@@ -31,10 +32,15 @@ class SampleWindow: Blend2DWindowContentType {
         rootViews = []
         controlSystem.delegate = self
 
-        initWindows()
+        initializeWindows()
+        initializeTimer()
     }
 
-    func initWindows() {
+    deinit {
+        timer?.invalidate()
+    }
+
+    func initializeWindows() {
         let window =
         Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
                title: "Window")
@@ -202,6 +208,16 @@ class SampleWindow: Blend2DWindowContentType {
         lastFrame = Stopwatch.global.timeIntervalSinceStart()
     }
 
+    private func initializeTimer() {
+        let timer = Timer(timeInterval: 1 / 60.0, repeats: true) { [weak self] _ in
+            self?.update(Stopwatch.global.timeIntervalSinceStart())
+        }
+
+        RunLoop.main.add(timer, forMode: .default)
+
+        self.timer = timer
+    }
+
     func willStartLiveResize() {
 
     }
@@ -233,6 +249,7 @@ class SampleWindow: Blend2DWindowContentType {
         // Fixed-frame update
         let delta = time - lastFrame
         lastFrame = time
+
         Scheduler.instance.onFixedFrame(delta)
 
         performLayout()
