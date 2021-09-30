@@ -2,19 +2,19 @@ import WinSDK
 import WinSDK.User
 
 /// A Win32 window.
-public class Win32Window {
+open class Win32Window {
     /// The default screen DPI constant.
     /// Usually defined as 96 on Windows versions that support it.
     public static let defaultDPI = Int(USER_DEFAULT_SCREEN_DPI)
 
     private let minSize: Size = Size(width: 200, height: 150)
     private var className: [WCHAR]
-    var size: Size
-    var needsDisplay: Bool = false
+    public private(set) var size: Size
+    public private(set) var needsDisplay: Bool = false
 
     /// DPI, or dots-per-inch- value of the window.
     /// Initializes to `Win32Window.defaultDPI` by default.
-    var dpi: Int = Win32Window.defaultDPI {
+    public var dpi: Int = Win32Window.defaultDPI {
         didSet {
             dpiScalingFactor = Double(dpi) / Double(Self.defaultDPI)
         }
@@ -28,11 +28,11 @@ public class Win32Window {
     ///
     /// Defaults to 1.0 at instantiation, and changes automatically in response
     /// to changes in `self.dpi`.
-    private(set) var dpiScalingFactor: Double = 1.0
+    public private(set) var dpiScalingFactor: Double = 1.0
 
-    internal var hwnd: HWND
+    public let hwnd: HWND
 
-    init(size: Size) {
+    public init(size: Size) {
         self.size = size
 
         // TODO: Change this
@@ -87,21 +87,25 @@ public class Win32Window {
         initialize()
     }
 
-    internal func initialize() {
+    open func initialize() {
 
     }
 
     // MARK: Display
 
-    public func show() {
+    open func show() {
         ShowWindow(hwnd, SW_RESTORE)
     }
 
-    func setNeedsDisplay() {
+    open func clearNeedsDisplay() {
+        needsDisplay = false
+    }
+
+    open func setNeedsDisplay() {
         setNeedsDisplay(Rect(origin: .zero, size: size))
     }
 
-    func setNeedsDisplay(_ rect: Rect) {
+    open func setNeedsDisplay(_ rect: Rect) {
         var r = rect.asRECT
         InvalidateRect(hwnd, &r, false)
 
@@ -115,7 +119,7 @@ public class Win32Window {
     /// Called when the window has received  `WM_DESTROY` message.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
-    func onClose(_ message: WindowMessage) {
+    open func onClose(_ message: WindowMessage) {
 
     }
 
@@ -125,7 +129,7 @@ public class Win32Window {
     /// should not call `super.onPaint()` if GDI draw calls where made.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/gdi/wm-paint
-    func onPaint(_ message: WindowMessage) {
+    open func onPaint(_ message: WindowMessage) {
         if !needsDisplay {
             return
         }
@@ -143,7 +147,7 @@ public class Win32Window {
     /// Called when the window has received a `WM_SIZE` message.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-size
-    func onResize(_ message: WindowMessage) {
+    open func onResize(_ message: WindowMessage) {
         let width = LOWORD(message.lParam)
         let height = HIWORD(message.lParam)
 
@@ -154,7 +158,7 @@ public class Win32Window {
     /// changes.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/hidpi/wm-dpichanged
-    func onDPIChanged(_ message: WindowMessage) {
+    open func onDPIChanged(_ message: WindowMessage) {
         dpi = Int(HIWORD(message.wParam))
 
         let lpInfo: UnsafeMutablePointer<RECT> = .init(bitPattern: UInt(message.lParam))!
@@ -176,7 +180,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousemove
-    func onMouseMove(_ message: WindowMessage) -> LRESULT? {
+    open func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -184,7 +188,7 @@ public class Win32Window {
     /// area of this window.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttondown
-    func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
+    open func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -195,7 +199,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mbuttondown
-    func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
+    open func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -206,7 +210,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-rbuttondown
-    func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
+    open func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -217,7 +221,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttonup
-    func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
+    open func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -228,7 +232,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mbuttonup
-    func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
+    open func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -239,7 +243,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-rbuttonup
-    func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
+    open func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -251,7 +255,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keydown
-    func onKeyDown(_ message: WindowMessage) -> LRESULT? {
+    open func onKeyDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -261,7 +265,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keyup
-    func onKeyUp(_ message: WindowMessage) -> LRESULT? {
+    open func onKeyUp(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -279,7 +283,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// From Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-syskeydown
-    func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
+    open func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -295,7 +299,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// From Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-syskeyup
-    func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
+    open func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -305,7 +309,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-keydown
-    func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
+    open func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -316,7 +320,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-char
-    func onKeyChar(_ message: WindowMessage) -> LRESULT? {
+    open func onKeyChar(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 
@@ -334,7 +338,7 @@ public class Win32Window {
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-deadchar
-    func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
+    open func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
         return nil
     }
 }

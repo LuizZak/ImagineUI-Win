@@ -1,3 +1,4 @@
+import MinWin32
 import ImagineUI_Win
 
 class MainWindow: ImagineUIWindowContent {

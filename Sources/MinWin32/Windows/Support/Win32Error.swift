@@ -4,7 +4,7 @@
 import ucrt
 import WinSDK
 
-struct Win32Error: Swift.Error {
+public struct Win32Error: Swift.Error {
     private enum ErrorCode {
         case errno(errno_t)
         case win32(DWORD)
@@ -36,7 +36,7 @@ struct Win32Error: Swift.Error {
 }
 
 extension Win32Error: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         let dwFlags: DWORD = DWORD(FORMAT_MESSAGE_ALLOCATE_BUFFER)
             | DWORD(FORMAT_MESSAGE_FROM_SYSTEM)
             | DWORD(FORMAT_MESSAGE_IGNORE_INSERTS)
@@ -62,13 +62,13 @@ extension Win32Error: CustomStringConvertible {
             dwResult = withUnsafeMutablePointer(to: &buffer) {
                 $0.withMemoryRebound(to: WCHAR.self, capacity: 2) {
                     FormatMessageW(
-                        dwFlags, 
-                        nil, 
+                        dwFlags,
+                        nil,
                         error,
                         MAKELANGID(WORD(LANG_NEUTRAL),
                         WORD(SUBLANG_DEFAULT)),
-                        $0, 
-                        0, 
+                        $0,
+                        0,
                         nil
                     )
                 }
@@ -81,12 +81,12 @@ extension Win32Error: CustomStringConvertible {
                 $0.withMemoryRebound(to: WCHAR.self, capacity: 2) {
                     FormatMessageW(
                         dwFlags,
-                        nil, 
+                        nil,
                         status,
-                        MAKELANGID(WORD(LANG_NEUTRAL), 
+                        MAKELANGID(WORD(LANG_NEUTRAL),
                         WORD(SUBLANG_DEFAULT)),
-                        $0, 
-                        0, 
+                        $0,
+                        0,
                         nil
                     )
                 }
@@ -101,13 +101,13 @@ extension Win32Error: CustomStringConvertible {
                         dwFlags,
                         nil,
                         hr,
-                        MAKELANGID(WORD(LANG_NEUTRAL), 
+                        MAKELANGID(WORD(LANG_NEUTRAL),
                         WORD(SUBLANG_DEFAULT)),
-                        $0, 
-                        0, 
+                        $0,
+                        0,
                         nil
                     )
-                }   
+                }
             }
         }
 

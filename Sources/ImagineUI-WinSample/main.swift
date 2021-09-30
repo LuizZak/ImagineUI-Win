@@ -1,5 +1,6 @@
-import WinSDK
 import Foundation
+import WinSDK
+import MinWin32
 import ImagineUI_Win
 
 var app: ImagineUIApp!

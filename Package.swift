@@ -45,6 +45,11 @@ let package = Package(
             targets: [
                 "ImagineUI-Win",
             ]),
+        .library(
+            name: "MinWin32",
+            targets: [
+                "MinWin32",
+            ]),
     ],
     dependencies: [
         .package(url: "https://github.com/LuizZak/ImagineUI.git", .branch("master")),
@@ -54,11 +59,17 @@ let package = Package(
     targets: [
         executableTarget,
         .target(
+            name: "MinWin32",
+            dependencies: [
+                .product(name: "SwiftCOM", package: "swift-com"),
+                .product(name: "Logging", package: "swift-log"),
+            ]),
+        .target(
             name: "ImagineUI-Win",
             dependencies: [
                 "ImagineUI",
+                "MinWin32",
                 .product(name: "Blend2DRenderer", package: "ImagineUI"),
-                .product(name: "SwiftCOM", package: "swift-com"),
                 .product(name: "Logging", package: "swift-log"),
             ]),
         .testTarget(

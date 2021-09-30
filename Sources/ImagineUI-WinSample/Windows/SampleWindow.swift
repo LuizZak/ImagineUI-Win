@@ -1,8 +1,9 @@
 import Foundation
-import SwiftBlend2D
-import ImagineUI_Win
 import CassowarySwift
+import SwiftBlend2D
 import Blend2DRenderer
+import MinWin32
+import ImagineUI_Win
 
 class SampleWindow: Blend2DWindowContentType {
     private var lastFrame: TimeInterval = 0

@@ -4,7 +4,7 @@ import WinSDK
 
 /// Main logger with support for file logging when setup with ``setup(logFileUrl:label:)``.
 public enum WinLogger {
-    public static var logger: Logger = Logger(label: "com.imagine-ui.logging")
+    public static var logger: Logger = Logger(label: "com.minwin32.logging")
 
     /// Sets up file logging to a specified file URL.
     public static func setup(logFileUrl: URL, label: String) throws {

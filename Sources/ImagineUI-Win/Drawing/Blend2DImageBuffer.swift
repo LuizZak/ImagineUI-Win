@@ -1,6 +1,7 @@
 import WinSDK
 import WinSDK.WinGDI
 import SwiftBlend2D
+import MinWin32
 
 /// A pairing of BLImage and HBITMAP which map to the same underlying memory
 /// block.

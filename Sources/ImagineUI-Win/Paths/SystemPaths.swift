@@ -1,5 +1,6 @@
 import struct Foundation.URL
 import WinSDK
+import MinWin32
 
 /// Contains factories for system paths.
 public enum SystemPaths {

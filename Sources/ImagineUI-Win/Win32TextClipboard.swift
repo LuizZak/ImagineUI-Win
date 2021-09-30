@@ -1,5 +1,6 @@
 import WinSDK
 import ImagineUI
+import MinWin32
 
 class Win32TextClipboard: TextClipboard {
     func getText() -> String? {
@@ -18,7 +19,7 @@ class Win32TextClipboard: TextClipboard {
 
         return String(from: pchData.assumingMemoryBound(to: WCHAR.self))
     }
-    
+
     func setText(_ text: String) {
         guard OpenClipboard(nil) else {
             return
@@ -46,7 +47,7 @@ class Win32TextClipboard: TextClipboard {
             memcpy(pchData, baseAddress, Int(size))
         }
     }
-    
+
     func containsText() -> Bool {
         return getText() != nil
     }

@@ -2,6 +2,7 @@ import Foundation
 import WinSDK
 import SwiftCOM
 import ImagineUI
+import MinWin32
 
 public class ImagineUIApp {
     var delegate: ImagineUIAppDelegate

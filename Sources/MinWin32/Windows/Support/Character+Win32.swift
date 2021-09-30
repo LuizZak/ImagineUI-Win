@@ -1,6 +1,6 @@
 import WinSDK
 
-extension Character {
+public extension Character {
     init?(fromWide wide: WCHAR) {
         guard let scalar = UnicodeScalar(wide) else { return nil }
         self.init(scalar)

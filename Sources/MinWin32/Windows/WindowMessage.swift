@@ -1,13 +1,20 @@
 import WinSDK
 
-struct WindowMessage {
-    var uMsg: UINT
-    var wParam: WPARAM
-    var lParam: LPARAM
+public struct WindowMessage {
+    public var uMsg: UINT
+    public var wParam: WPARAM
+    public var lParam: LPARAM
+
+    @_transparent
+    public init(uMsg: UINT, wParam: WPARAM, lParam: LPARAM) {
+        self.uMsg = uMsg
+        self.wParam = wParam
+        self.lParam = lParam
+    }
 }
 
 extension WindowMessage {
-    var uMsgDescription: String {
+    public var uMsgDescription: String {
         Self.debugDescription(for: uMsg)
     }
 

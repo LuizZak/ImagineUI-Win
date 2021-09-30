@@ -1,8 +1,9 @@
-import ImagineUI
-import Blend2DRenderer
 import WinSDK
 import WinSDK.User
 import WinSDK.WinGDI
+import MinWin32
+import Blend2DRenderer
+import ImagineUI
 
 public class Blend2DWindow: Win32Window {
     private var keyboardManager: Win32KeyboardManager?
@@ -30,17 +31,17 @@ public class Blend2DWindow: Win32Window {
     /// Event raised when the window has been closed.
     @Event public var closed: EventSourceWithSender<Blend2DWindow, Void>
 
-    convenience init(content: Blend2DWindowContentType) {
+    public convenience init(content: Blend2DWindowContentType) {
         self.init(size: content.size, content: content)
     }
 
-    init(size: UIIntSize, content: Blend2DWindowContentType) {
+    public init(size: UIIntSize, content: Blend2DWindowContentType) {
         self.content = content
 
         super.init(size: size.asSize)
     }
 
-    override func initialize() {
+    public override func initialize() {
         super.initialize()
 
         initializeClipboard()
@@ -85,19 +86,19 @@ public class Blend2DWindow: Win32Window {
         buffer = .init(contentSize: contentSize.asBLSizeI, format: .xrgb32, hdc: hdc, scale: content.preferredRenderScale)
     }
 
-    func update() {
+    public func update() {
         content.update(Stopwatch.global.timeIntervalSinceStart())
     }
 
     // MARK: Events
 
-    override func onResize(_ message: WindowMessage) {
+    public override func onResize(_ message: WindowMessage) {
         super.onResize(message)
 
         resizeApp()
     }
 
-    override func onDPIChanged(_ message: WindowMessage) {
+    public override func onDPIChanged(_ message: WindowMessage) {
         super.onDPIChanged(message)
 
         resizeApp()
@@ -105,7 +106,7 @@ public class Blend2DWindow: Win32Window {
         WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), content.size: \(content.size)")
     }
 
-    override func onClose(_ message: WindowMessage) {
+    public override func onClose(_ message: WindowMessage) {
         super.onClose(message)
 
         WinLogger.info("\(self): Closed")
@@ -113,13 +114,13 @@ public class Blend2DWindow: Win32Window {
         content.didClose()
     }
 
-    override func onPaint(_ message: WindowMessage) {
+    public override func onPaint(_ message: WindowMessage) {
         update()
 
         guard needsDisplay else {
             return
         }
-        defer { needsDisplay = false }
+        defer { clearNeedsDisplay() }
 
         var ps = PAINTSTRUCT()
         guard let hdc = BeginPaint(hwnd, &ps) else {
@@ -157,7 +158,7 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Mouse Events
 
-    override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
+    public override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message)
             content.mouseMoved(event: event)
@@ -166,7 +167,7 @@ public class Blend2DWindow: Win32Window {
         return super.onMouseMove(message)
     }
 
-    override func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
         defer {
             SetCapture(hwnd)
             let event = makeMouseEventArgs(message)
@@ -176,7 +177,7 @@ public class Blend2DWindow: Win32Window {
         return super.onLeftMouseDown(message)
     }
 
-    override func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onMiddleMouseDown(_ message: WindowMessage) -> LRESULT? {
         defer {
             SetCapture(hwnd)
 
@@ -187,7 +188,7 @@ public class Blend2DWindow: Win32Window {
         return super.onMiddleMouseDown(message)
     }
 
-    override func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onRightMouseDown(_ message: WindowMessage) -> LRESULT? {
         defer {
             SetCapture(hwnd)
 
@@ -198,7 +199,7 @@ public class Blend2DWindow: Win32Window {
         return super.onRightMouseDown(message)
     }
 
-    override func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
+    public override func onLeftMouseUp(_ message: WindowMessage) -> LRESULT? {
         defer {
             ReleaseCapture()
 
@@ -209,7 +210,7 @@ public class Blend2DWindow: Win32Window {
         return super.onLeftMouseUp(message)
     }
 
-    override func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
+    public override func onMiddleMouseUp(_ message: WindowMessage) -> LRESULT? {
         defer {
             ReleaseCapture()
 
@@ -220,7 +221,7 @@ public class Blend2DWindow: Win32Window {
         return super.onMiddleMouseUp(message)
     }
 
-    override func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
+    public override func onRightMouseUp(_ message: WindowMessage) -> LRESULT? {
         defer {
             ReleaseCapture()
 
@@ -233,7 +234,7 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Keyboard events
 
-    override func onKeyDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onKeyDown(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onKeyDown(message)
         }
@@ -241,7 +242,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onKeyDown(message)
     }
 
-    override func onKeyUp(_ message: WindowMessage) -> LRESULT? {
+   public  override func onKeyUp(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onKeyUp(message)
         }
@@ -249,7 +250,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onKeyUp(message)
     }
 
-    override func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onSystemKeyDown(message)
         }
@@ -257,7 +258,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onSystemKeyDown(message)
     }
 
-    override func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
+    public override func onSystemKeyUp(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onSystemKeyUp(message)
         }
@@ -265,7 +266,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onSystemKeyUp(message)
     }
 
-    override func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
+    public override func onKeyCharDown(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onKeyCharDown(message)
         }
@@ -273,7 +274,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onKeyCharDown(message)
     }
 
-    override func onKeyChar(_ message: WindowMessage) -> LRESULT? {
+    public override func onKeyChar(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onKeyChar(message)
         }
@@ -281,7 +282,7 @@ public class Blend2DWindow: Win32Window {
         return keyboardManager.onKeyChar(message)
     }
 
-    override func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
+    public override func onKeyDeadChar(_ message: WindowMessage) -> LRESULT? {
         guard let keyboardManager = keyboardManager else {
             return super.onKeyDeadChar(message)
         }
@@ -290,30 +291,6 @@ public class Blend2DWindow: Win32Window {
     }
 
     // MARK: Message translation
-
-    private func makeKeyEventArgs(_ message: WindowMessage) -> KeyEventArgs {
-        let vkCode: Keys = Keys(fromWin32VK: LOWORD(message.wParam))
-        let keyChar: String? = nil
-        let modifiers: KeyboardModifier = makeKeyboardModifiers(message)
-
-        return KeyEventArgs(keyCode: vkCode, keyChar: keyChar, modifiers: modifiers)
-    }
-
-    private func makeKeyboardModifiers(_ message: WindowMessage) -> KeyboardModifier {
-        var modifiers: KeyboardModifier = []
-
-        if IS_BIT_ON(HIWORD(message.lParam), KF_ALTDOWN) {
-            modifiers.insert(.alt)
-        }
-        if IS_HIBIT_ON(GetKeyState(VK_CONTROL)) {
-            modifiers.insert(.control)
-        }
-        if IS_HIBIT_ON(GetKeyState(VK_SHIFT)) {
-            modifiers.insert(.shift)
-        }
-
-        return modifiers
-    }
 
     private func makeMouseEventArgs(_ message: WindowMessage) -> MouseEventArgs {
         let x = GET_X_LPARAM(message.lParam)
@@ -353,16 +330,16 @@ public class Blend2DWindow: Win32Window {
 }
 
 extension Blend2DWindow: Win32KeyboardManagerDelegate {
-    func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: KeyPressEventArgs) {
-        content.keyPress(event: event)
+    public func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: Win32KeyPressEventArgs) {
+        content.keyPress(event: event.asKeyPressEventArgs)
     }
 
-    func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: KeyEventArgs) {
-        content.keyDown(event: event)
+    public func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: Win32KeyEventArgs) {
+        content.keyDown(event: event.asKeyEventArgs)
     }
 
-    func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: KeyEventArgs) {
-        content.keyUp(event: event)
+    public func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: Win32KeyEventArgs) {
+        content.keyUp(event: event.asKeyEventArgs)
     }
 }
 
