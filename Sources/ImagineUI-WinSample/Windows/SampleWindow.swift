@@ -251,8 +251,6 @@ class SampleWindow: Blend2DWindowContentType {
         lastFrame = time
 
         Scheduler.instance.onFixedFrame(delta)
-
-        performLayout()
     }
 
     func performLayout() {
