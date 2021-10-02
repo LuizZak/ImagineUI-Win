@@ -102,10 +102,10 @@ open class Win32Window {
     open func setNeedsLayout() {
         guard needsLayout == false else { return }
 
+        // TODO: Figure out a better way to handle layout display updating other
+        // TODO: relying on WM_PAINT message.
+        setNeedsDisplay(.init(origin: .zero, size: .init(width: 1, height: 1)))
         needsLayout = true
-        RunLoop.main.perform { [weak self] in
-            self?.onLayout()
-        }
     }
 
     open func clearNeedsLayout() {
@@ -375,6 +375,8 @@ fileprivate extension Win32Window {
     func handleMessage(_ uMsg: UINT, _ wParam: WPARAM, _ lParam: LPARAM) -> LRESULT? {
         let message = WindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
 
+        WinLogger.info("Received message: \(message.uMsgDescription)")
+
         switch Int32(uMsg) {
 
         // MARK: Native messages
@@ -383,6 +385,7 @@ fileprivate extension Win32Window {
             return 0
 
         case WM_PAINT:
+            onLayout()
             onPaint(message)
             return 0
 
