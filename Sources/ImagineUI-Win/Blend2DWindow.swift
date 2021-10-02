@@ -89,6 +89,12 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Events
 
+    public override func onLayout() {
+        super.onLayout()
+
+        content.performLayout()
+    }
+
     public override func onResize(_ message: WindowMessage) {
         super.onResize(message)
 
@@ -340,12 +346,12 @@ extension Blend2DWindow: Win32KeyboardManagerDelegate {
 
 extension Blend2DWindow: Blend2DWindowContentDelegate {
     public func needsLayout(_ view: View) {
-        setNeedsDisplay()
+        setNeedsLayout()
     }
 
     public func invalidate(bounds: UIRectangle) {
-        let screenBounds = bounds.scaled(by: dpiScalingFactor)
-        setNeedsDisplay(screenBounds.rounded().asRect)
+        let screenBounds = bounds.inflatedBy(.init(repeating: 3.0)).scaled(by: dpiScalingFactor).roundedToLargest()
+        setNeedsDisplay(screenBounds.asRect)
     }
 
     public func setMouseCursor(_ cursor: MouseCursorKind) {

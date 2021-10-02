@@ -1,3 +1,4 @@
+import Foundation
 import WinSDK
 import WinSDK.User
 
@@ -11,6 +12,7 @@ open class Win32Window {
     private var className: [WCHAR]
     public private(set) var size: Size
     public private(set) var needsDisplay: Bool = false
+    public private(set) var needsLayout: Bool = false
 
     /// DPI, or dots-per-inch- value of the window.
     /// Initializes to `Win32Window.defaultDPI` by default.
@@ -97,6 +99,19 @@ open class Win32Window {
         ShowWindow(hwnd, SW_RESTORE)
     }
 
+    open func setNeedsLayout() {
+        guard needsLayout == false else { return }
+
+        needsLayout = true
+        RunLoop.main.perform { [weak self] in
+            self?.onLayout()
+        }
+    }
+
+    open func clearNeedsLayout() {
+        needsLayout = false
+    }
+
     open func clearNeedsDisplay() {
         needsDisplay = false
     }
@@ -114,16 +129,29 @@ open class Win32Window {
 
     // MARK: Events
 
+    /// Posts a private message to this window's message queue.
+    public func postMessage(_ message: CustomMessage) {
+        PostMessageW(hwnd, message.uMsg, message.wParam, message.lParam)
+    }
+
+    // MARK: Layout events
+
+    /// Called when the window is updating its layout after a call to
+    /// `setNeedsLayout()` has been made recently.
+    open func onLayout() {
+        clearNeedsLayout()
+    }
+
     // MARK: Window events
 
-    /// Called when the window has received `WM_DESTROY` message.
+    /// Called when the window has received a `WM_DESTROY` message.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
     open func onClose(_ message: WindowMessage) {
 
     }
 
-    /// Called when the window has received a `WM_PAINT` message.
+    /// Called when the window has received a a `WM_PAINT` message.
     ///
     /// Classes that override this method should handle updating needsDisplay and
     /// should not call `super.onPaint()` if GDI draw calls where made.
@@ -348,6 +376,8 @@ fileprivate extension Win32Window {
         let message = WindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
 
         switch Int32(uMsg) {
+
+        // MARK: Native messages
         case WM_DESTROY:
             onClose(message)
             return 0

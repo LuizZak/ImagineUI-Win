@@ -32,7 +32,21 @@ SET BUILD_ARGS=-c=%CONFIG%
 REM TODO: Enable -cross-module-optimization once Swift compiler properly supports it without crashing
 REM if %CONFIG%==release SET BUILD_ARGS=%BUILD_ARGS% -Xswiftc -cross-module-optimization
 
+REM Emit debug symbols
+SET DEBUG_ARGS=-Xswiftc -g -Xswiftc -debug-info-format=codeview
+IF %CONFIG%=="debug" (
+    SET BUILD_ARGS=%BUILD_ARGS% %DEBUG_ARGS%
+) ELSE (
+    IF %CONFIG%==debug (
+        SET BUILD_ARGS=%BUILD_ARGS% %DEBUG_ARGS%
+    )
+)
+
+@ECHO ON
+
 swift build %BUILD_ARGS%
+
+@ECHO OFF
 
 IF %errorlevel% neq 0 (
     EXIT /b %errorlevel%
@@ -40,7 +54,7 @@ IF %errorlevel% neq 0 (
 
 ECHO Preparing binary...
 
-FOR /f %%i IN ('swift build %BUILD_ARGS% --show-bin-path') DO (
+FOR /f %%i IN ('swift build -c=%CONFIG% --show-bin-path') DO (
     SET BIN_DIR=%%i
 )
 
