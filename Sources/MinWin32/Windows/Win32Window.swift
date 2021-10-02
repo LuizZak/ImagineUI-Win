@@ -375,8 +375,6 @@ fileprivate extension Win32Window {
     func handleMessage(_ uMsg: UINT, _ wParam: WPARAM, _ lParam: LPARAM) -> LRESULT? {
         let message = WindowMessage(uMsg: uMsg, wParam: wParam, lParam: lParam)
 
-        WinLogger.info("Received message: \(message.uMsgDescription)")
-
         switch Int32(uMsg) {
 
         // MARK: Native messages
