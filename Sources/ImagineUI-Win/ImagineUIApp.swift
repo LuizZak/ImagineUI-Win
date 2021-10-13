@@ -86,7 +86,7 @@ public class ImagineUIApp {
             WinLogger.error("RegisterAppStateChangeNotification: \(Win32Error(win32: GetLastError()))")
         }
 
-        delegate.appDidLaunch()
+        try delegate.appDidLaunch()
 
         var msg: MSG = MSG()
         var nExitCode: Int32 = EXIT_SUCCESS

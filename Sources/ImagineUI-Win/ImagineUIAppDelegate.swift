@@ -1,5 +1,5 @@
 public protocol ImagineUIAppDelegate {
-    func appDidLaunch()
+    func appDidLaunch() throws
 
     func appWillMoveToBackground()
     func appDidMoveToBackground()
@@ -12,7 +12,7 @@ public extension ImagineUIAppDelegate {
     func appWillMoveToBackground() {
 
     }
-    
+
     func appDidMoveToBackground() {
 
     }
