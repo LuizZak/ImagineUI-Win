@@ -4,12 +4,14 @@ import WinSDK.User
 
 /// A Win32 window.
 open class Win32Window {
+    /// Default base window class definition for this window type.
+    public static var defaultWindowClass: WindowClass = WindowClass(className: "Win32Window")
+
     /// The default screen DPI constant.
     /// Usually defined as 96 on Windows versions that support it.
     public static let defaultDPI = Int(USER_DEFAULT_SCREEN_DPI)
 
     private let minSize: Size = Size(width: 200, height: 150)
-    private var className: [WCHAR]
     public private(set) var size: Size
     public private(set) var needsDisplay: Bool = false
     public private(set) var needsLayout: Bool = false
@@ -34,44 +36,31 @@ open class Win32Window {
 
     public let hwnd: HWND
 
-    public init(size: Size) {
-        self.size = size
+    /// The window class definition for this `Win32Window` instance.
+    public let windowClass: WindowClass
 
-        // TODO: Change this
-        className = "Sample Window Class".wide
+    public init(settings: CreationSettings) {
+        self.size = settings.size
+        self.windowClass = settings.windowClass
 
         let handle = GetModuleHandleW(nil)
 
-        let IDC_ARROW: UnsafePointer<WCHAR> =
-            UnsafePointer<WCHAR>(bitPattern: 32512)!
-
         // Register the window class.
-        var wc = WNDCLASSW()
-        className.withUnsafeBufferPointer { p in
-            wc.style         = UINT(CS_HREDRAW | CS_VREDRAW)
-            wc.hCursor       = LoadCursorW(nil, IDC_ARROW)
-            wc.lpfnWndProc   = DefWindowProcW
-            wc.hInstance     = handle
-            wc.lpszClassName = p.baseAddress!
-
-            RegisterClassW(&wc)
-        }
 
         // Create the window.
         let hwnd = CreateWindowExW(
-            0,                               // Optional window styles.
-            wc.lpszClassName,                // Window class
-            // TODO: Change window title text
-            "ImagineUI-Win Sample".wide,     // Window text
-            WS_OVERLAPPEDWINDOW,             // Window style
+            0,
+            self.windowClass.windowClass.lpszClassName,
+            settings.title.wide,
+            WS_OVERLAPPEDWINDOW,
 
             // Size and position
             CW_USEDEFAULT, CW_USEDEFAULT, Int32(size.width), Int32(size.height),
 
-            nil,     // Parent window
-            nil,     // Menu
-            handle,  // Instance handle
-            nil      // Additional application data
+            nil,    // Parent window
+            nil,    // Menu
+            handle, // Instance handle
+            nil     // Additional application data
         )
 
         guard let hwnd = hwnd else {
@@ -81,10 +70,7 @@ open class Win32Window {
 
         self.hwnd = hwnd
 
-        _ = SetWindowSubclass(hwnd,
-                              windowProc,
-                              UINT_PTR.max,
-                              unsafeBitCast(self as AnyObject, to: DWORD_PTR.self))
+        windowClass.registerSubClass(hwnd: hwnd, thisPointer: self, procedure: windowProc)
 
         initialize()
     }
@@ -439,10 +425,10 @@ fileprivate extension Win32Window {
 
         case WM_GETMINMAXINFO:
             func ClientSizeToWindowSize(_ size: Size) -> Size {
-                var rc: RECT = Rect(origin: .zero, size: size).asRECT
+                var rc = Rect(origin: .zero, size: size).asRECT
 
-                let gwlStyle: LONG = WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX
-                let gwlExStyle: LONG = WS_EX_CLIENTEDGE
+                let gwlStyle = WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX
+                let gwlExStyle = WS_EX_CLIENTEDGE
 
                 if !AdjustWindowRectExForDpi(&rc,
                                              DWORD(gwlStyle),
@@ -455,10 +441,11 @@ fileprivate extension Win32Window {
                 return rc.asRect.size
             }
 
-            let lpInfo: UnsafeMutablePointer<MINMAXINFO> = .init(bitPattern: UInt(lParam))!
-
             // Adjust the minimum and maximum tracking size for the window.
-            lpInfo.pointee.ptMinTrackSize = ClientSizeToWindowSize(minSize).asPOINT
+            if let lpInfo = UnsafeMutablePointer<MINMAXINFO>(bitPattern: UInt(lParam)) {
+                lpInfo.pointee.ptMinTrackSize = ClientSizeToWindowSize(minSize).asPOINT
+            }
+
             return 0
 
         default:
@@ -468,7 +455,7 @@ fileprivate extension Win32Window {
 }
 
 private let windowProc: SUBCLASSPROC = { (hWnd, uMsg, wParam, lParam, uIdSubclass, dwRefData) in
-    if let window = unsafeBitCast(dwRefData, to: AnyObject.self) as? Win32Window {
+    if dwRefData != 0, let window = unsafeBitCast(dwRefData, to: AnyObject.self) as? Win32Window {
         if let result = window.handleMessage(uMsg, wParam, lParam) {
             return result
         }

@@ -17,23 +17,27 @@ var executableTarget: Target = .executableTarget(
     linkerSettings: [
         .linkedLibrary("User32"),
         .linkedLibrary("ComCtl32"),
+        .unsafeFlags([
+            "-Xlinker",
+            "/DEBUG",
+        ], .when(configuration: .debug))
     ]
 )
 
+// Append settings required to run the executable on Windows
 #if true
 
-// Append settings required to run the executable on Windows
-executableTarget.swiftSettings?.append(
+executableTarget.swiftSettings?.append(contentsOf: [
     .unsafeFlags([
         "-parse-as-library",
     ])
-)
-executableTarget.linkerSettings?.append(
+])
+executableTarget.linkerSettings?.append(contentsOf: [
     .unsafeFlags([
         "-Xlinker",
         "/SUBSYSTEM:WINDOWS",
     ])
-)
+])
 
 #endif
 

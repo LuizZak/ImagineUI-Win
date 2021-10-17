@@ -23,7 +23,11 @@ public class ImagineUIApp {
 
     /// Opens a window to show a given content.
     public func show(content: Blend2DWindowContentType) {
-        let window = Blend2DWindow(content: content)
+        let settings = Win32Window.CreationSettings(
+            title: "ImagineUI-Win Sample Window", size:
+            content.size.asSize
+        )
+        let window = Blend2DWindow(settings: settings, content: content)
         windows.append(window)
 
         window.closed.addListener(owner: self) { [weak self] (w, _) in

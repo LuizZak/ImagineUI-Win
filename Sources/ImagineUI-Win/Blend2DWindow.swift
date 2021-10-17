@@ -32,14 +32,10 @@ public class Blend2DWindow: Win32Window {
     /// Event raised when the window has been closed.
     @Event public var closed: EventSourceWithSender<Blend2DWindow, Void>
 
-    public convenience init(content: Blend2DWindowContentType) {
-        self.init(size: content.size, content: content)
-    }
-
-    public init(size: UIIntSize, content: Blend2DWindowContentType) {
+    public init(settings: CreationSettings, content: Blend2DWindowContentType) {
         self.content = content
 
-        super.init(size: size.asSize)
+        super.init(settings: settings)
     }
 
     public override func initialize() {
