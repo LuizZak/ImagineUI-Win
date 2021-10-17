@@ -43,32 +43,8 @@ open class Win32Window {
         self.size = settings.size
         self.windowClass = settings.windowClass
 
-        let handle = GetModuleHandleW(nil)
-
-        // Register the window class.
-
         // Create the window.
-        let hwnd = CreateWindowExW(
-            0,
-            self.windowClass.windowClass.lpszClassName,
-            settings.title.wide,
-            WS_OVERLAPPEDWINDOW,
-
-            // Size and position
-            CW_USEDEFAULT, CW_USEDEFAULT, Int32(size.width), Int32(size.height),
-
-            nil,    // Parent window
-            nil,    // Menu
-            handle, // Instance handle
-            nil     // Additional application data
-        )
-
-        guard let hwnd = hwnd else {
-            WinLogger.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
-            fatalError()
-        }
-
-        self.hwnd = hwnd
+        self.hwnd = settings.windowClass.createWindow(title: settings.title, size: settings.size)
 
         windowClass.registerSubClass(hwnd: hwnd, thisPointer: self, procedure: windowProc)
 

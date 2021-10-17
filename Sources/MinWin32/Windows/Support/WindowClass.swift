@@ -39,6 +39,32 @@ public class WindowClass {
         }
     }
 
+    public func createWindow(title: String, size: Size) -> HWND {
+        let handle = GetModuleHandleW(nil)
+
+        let hwnd = CreateWindowExW(
+            0,
+            windowClass.lpszClassName,
+            title.wide,
+            WS_OVERLAPPEDWINDOW,
+
+            // Size and position
+            CW_USEDEFAULT, CW_USEDEFAULT, Int32(size.width), Int32(size.height),
+
+            nil,    // Parent window
+            nil,    // Menu
+            handle, // Instance handle
+            nil     // Additional application data
+        )
+
+        guard let hwnd = hwnd else {
+            WinLogger.error("Failed to create window: \(Win32Error(win32: GetLastError()))")
+            fatalError()
+        }
+
+        return hwnd
+    }
+
     /// Registers a window as a subclass of this window class type.
     ///
     /// A procedure for window messages must be provided to be invoked with a
