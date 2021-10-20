@@ -7,9 +7,6 @@ import MinWin32
 public class ImagineUIApp {
     var delegate: ImagineUIAppDelegate
 
-    /// A list of all currently opened windows.
-    private(set) public var windows: [Win32Window] = []
-
     public init(delegate: ImagineUIAppDelegate) {
         self.delegate = delegate
     }
@@ -28,11 +25,6 @@ public class ImagineUIApp {
             content.size.asSize
         )
         let window = Blend2DWindow(settings: settings, content: content)
-        windows.append(window)
-
-        window.closed.addListener(owner: self) { [weak self] (w, _) in
-            self?.windows.remove(w)
-        }
 
         window.show()
     }

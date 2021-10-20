@@ -4,6 +4,16 @@ import WinSDK.User
 
 /// A Win32 window.
 open class Win32Window {
+    /// Array with references to currently opened windows.
+    /// Used to keep `Win32Window` instances alive for at least as long as the
+    /// Win32 window.
+    private static var openWindows: [Win32Window] = []
+
+    private let minSize: Size = Size(width: 200, height: 150)
+
+    /// Set to `true` when a `WM_DESTROY` message has been received.
+    private var isDestroyed: Bool = false
+
     /// Default base window class definition for this window type.
     public static var defaultWindowClass: WindowClass = WindowClass(className: "Win32Window")
 
@@ -11,7 +21,6 @@ open class Win32Window {
     /// Usually defined as 96 on Windows versions that support it.
     public static let defaultDPI = Int(USER_DEFAULT_SCREEN_DPI)
 
-    private let minSize: Size = Size(width: 200, height: 150)
     public private(set) var size: Size
     public private(set) var needsDisplay: Bool = false
     public private(set) var needsLayout: Bool = false
@@ -57,7 +66,18 @@ open class Win32Window {
 
     // MARK: Display
 
+    /// Displays this window on the screen.
+    ///
+    /// Should not be called if the window has been closed.
     open func show() {
+        if !Win32Window.openWindows.contains(where: { $0 === self }) {
+            Win32Window.openWindows.append(self)
+        }
+
+        if isDestroyed {
+            WinLogger.warning("Called show() on a \(Win32Window.self) after a WM_DESTROY (onClose()) message has been received. The window will not be shown.")
+        }
+
         ShowWindow(hwnd, SW_RESTORE)
     }
 
@@ -110,7 +130,11 @@ open class Win32Window {
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
     open func onClose(_ message: WindowMessage) {
+        if let index = Win32Window.openWindows.firstIndex(where: { $0 === self }) {
+            Win32Window.openWindows.remove(at: index)
+        }
 
+        isDestroyed = true
     }
 
     /// Called when the window has received a a `WM_PAINT` message.

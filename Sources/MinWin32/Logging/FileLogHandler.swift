@@ -105,7 +105,9 @@ public class FileLogHandler: LogHandler {
         var localTime = tm()
         var now = time(nil)
         localtime_s(&localTime, &now)
+
         strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", &localTime)
+
         return buffer.withUnsafeBufferPointer {
             $0.withMemoryRebound(to: CChar.self) {
                 String(cString: $0.baseAddress!)
