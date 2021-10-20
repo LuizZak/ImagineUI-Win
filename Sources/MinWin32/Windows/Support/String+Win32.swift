@@ -18,7 +18,7 @@ public extension String {
 
 public extension String {
     var wide: [WCHAR] {
-        return Array<WCHAR>(from: self)
+        Array<WCHAR>(from: self)
     }
 
     func withUnsafeWideBuffer<T>(_ block: (UnsafeBufferPointer<WCHAR>) throws -> T) rethrows -> T {
@@ -28,10 +28,20 @@ public extension String {
         }
     }
 
+    /// Invokes a given block with a pointer to a null-terminated UTF16 string
+    /// pointer.
     func withUnsafeLPCWSTRPointer<T>(_ block: (LPCWSTR) throws -> T) rethrows -> T {
         let w = wide
         return try w.withUnsafeBufferPointer { p in
             return try block(p.baseAddress!)
+        }
+    }
+
+    /// Invokes a given block with a pointer to a null-terminated UTF8 string
+    /// pointer.
+    func withUnsafeLPCSTRPointer<T>(_ block: (LPCSTR) throws -> T) rethrows -> T {
+        try withCString { p in
+            try block(p)
         }
     }
 }
