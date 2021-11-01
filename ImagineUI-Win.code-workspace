@@ -29,124 +29,39 @@
 			}
 		],
 		"tasks": [
-			{
+            {
 				"label": "Build (debug)",
 				"type": "shell",
-				"command": "build.cmd",
-                "args": [
-                    "debug"
-                ],
-				"presentation": {
-					"reveal": "always"
-				},
-				"group": {
-					"kind": "build",
-					"isDefault": true
-				},
-				"windows": {
-					"options": {
-						"shell": {
-							"executable": "C:\\WINDOWS\\System32\\cmd.exe",
-							"args": [
-								"/d",
-								"/c",
-							]
-						}
-					}
-				}
+				"command": "python utils\\build.py",
+				"args": [
+					"-c", "debug"
+				]
 			},
-			{
-				"label": "Build (release)",
-				"type": "shell",
-				"command": "build.cmd",
-                "args": [
-                    "release"
-                ],
-				"presentation": {
-					"reveal": "always"
-				},
-				"group": "build",
-				"windows": {
-					"options": {
-						"shell": {
-							"executable": "C:\\WINDOWS\\System32\\cmd.exe",
-							"args": [
-								"/d",
-								"/c",
-							]
-						}
-					}
-				}
-			},
-			{
-				"label": "Run (debug)",
-				"type": "shell",
-				"command": "run.cmd",
-                "args": [
-                    "debug"
-                ],
-				"presentation": {
-					"reveal": "always"
-				},
-				"group": "build",
-				"windows": {
-					"options": {
-						"shell": {
-							"executable": "C:\\WINDOWS\\System32\\cmd.exe",
-							"args": [
-								"/d",
-								"/c",
-							]
-						}
-					}
-				}
-			},
-			{
-				"label": "Run (release)",
-				"type": "shell",
-				"command": "run.cmd",
-                "args": [
-                    "release"
-                ],
-				"presentation": {
-					"reveal": "always"
-				},
-				"group": "build",
-				"windows": {
-					"options": {
-						"shell": {
-							"executable": "C:\\WINDOWS\\System32\\cmd.exe",
-							"args": [
-								"/d",
-								"/c",
-							]
-						}
-					}
-				}
-			},
-			{
+            {
 				"label": "Test",
 				"type": "shell",
-				"command": "swift",
+				"command": "python utils\\build.py",
 				"args": [
 					"test"
-				],
-				"presentation": {
-					"reveal": "always"
-				},
-				"group": "test",
-				"windows": {
-					"options": {
-						"shell": {
-							"executable": "C:\\WINDOWS\\System32\\cmd.exe",
-							"args": [
-								"/d",
-								"/c",
-							]
-						}
-					}
-				}
-			}
+				]
+			},
+            {
+				"label": "Build Sample (debug)",
+				"type": "shell",
+				"command": "python utils\\build.py",
+				"args": [
+					"-c", "debug",
+					"-t", "ImagineUI-Win_Sample"
+				]
+			},
+            {
+				"label": "Run Sample (debug)",
+				"type": "shell",
+				"command": "python utils\\build.py",
+				"args": [
+					"run"
+				]
+			},
 		]
 	},
 	"folders": [
@@ -200,12 +115,13 @@
 			"**/.DS_Store": true
 		},
 		"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|Build (debug)",
-		"ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Run (debug)",
-		"ShortcutMenuBar.userButton03Command": "workbench.action.tasks.runTask|Test",
+		"ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Test",
+		"ShortcutMenuBar.userButton03Command": "workbench.action.tasks.runTask|Run Sample (debug)",
 	},
 	"extensions": {
 		"recommendations": [
-			"exodiusstudios.comment-anchors"
+			"exodiusstudios.comment-anchors",
+			"jerrygoyal.shortcut-menu-bar"
 		]
 	}
 }

@@ -60,6 +60,12 @@ open class Win32Window {
         initialize()
     }
 
+    private func onDestroy() {
+        if let index = Win32Window.openWindows.firstIndex(where: { $0 === self }) {
+            Win32Window.openWindows.remove(at: index)
+        }
+    }
+
     open func initialize() {
 
     }
@@ -130,10 +136,6 @@ open class Win32Window {
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-destroy
     open func onClose(_ message: WindowMessage) {
-        if let index = Win32Window.openWindows.firstIndex(where: { $0 === self }) {
-            Win32Window.openWindows.remove(at: index)
-        }
-
         isDestroyed = true
     }
 
@@ -366,6 +368,10 @@ fileprivate extension Win32Window {
         // MARK: Native messages
         case WM_DESTROY:
             onClose(message)
+            return 0
+
+        case WM_NCDESTROY:
+            onDestroy()
             return 0
 
         case WM_PAINT:
