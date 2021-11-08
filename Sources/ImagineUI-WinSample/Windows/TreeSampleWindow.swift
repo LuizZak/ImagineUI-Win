@@ -5,9 +5,46 @@ import Blend2DRenderer
 import MinWin32
 import ImagineUI_Win
 
-class SampleWindow: Blend2DWindowContentType {
+private class DataSource: TreeViewDataSource {
+    func hasItems(_ treeView: TreeView, at hierarchyIndex: TreeView.HierarchyIndex) -> Bool {
+        if hierarchyIndex.indices == [2] {
+            return true
+        }
+        if hierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
+            return true
+        }
+
+        return false
+    }
+
+    func numberOfItems(_ treeView: TreeView, at hierarchyIndex: TreeView.HierarchyIndex) -> Int {
+        if hierarchyIndex.isRoot {
+            return 10
+        }
+        if hierarchyIndex.indices == [2] {
+            return 2
+        }
+        if hierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
+            return 1
+        }
+
+        return 0
+    }
+
+    func titleForItem(at index: TreeView.ItemIndex) -> String {
+        if !index.parent.isRoot {
+            return "Item \(index.parent.indices.map { "\($0 + 1)" }.joined(separator: " -> ")) -> \(index.index + 1)"
+        }
+
+        return "Item \(index.index + 1)"
+    }
+}
+
+class TreeSampleWindow: Blend2DWindowContentType {
     private var lastFrame: TimeInterval = 0
     private var timer: Timer?
+    private let data: DataSource = DataSource()
+
     weak var delegate: Blend2DWindowContentDelegate?
     var bounds: BLRect
 
@@ -42,161 +79,25 @@ class SampleWindow: Blend2DWindowContentType {
 
     func initializeWindows() {
         let window =
-        Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
-               title: "Window")
+            Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
+                   title: "Window")
         window.delegate = self
         window.areaIntoConstraintsMask = [.location]
         window.rootControlSystem = controlSystem
         window.invalidationDelegate = self
 
-        let panel = Panel(title: "A Panel")
-        let panelContents = StackView(orientation: .vertical)
-        panelContents.spacing = 5
-        panelContents.clipToBounds = false
+        let tree = TreeView()
+        tree.dataSource = data
+        tree.reloadData()
 
-        let radioButton = RadioButton(title: "Unselected")
-        let radioButton2 = RadioButton(title: "Selected")
-        radioButton2.isSelected = true
-
-        let checkBox1 = Checkbox(title: "Unselected")
-        let checkBox2 = Checkbox(title: "Partial")
-        checkBox2.checkboxState = .partial
-
-        let checkBox3 = Checkbox(title: "Checked")
-        checkBox3.checkboxState = .checked
-        checkBox3.isEnabled = false
-
-        let button = Button(title: "Button")
-
-        var attributedText = AttributedText()
-        attributedText.append("A multi\n")
-        attributedText.append("line\n", attributes: [.font: Fonts.defaultFont(size: 20)])
-        attributedText.append("label!")
-        let label = Label()
-        label.attributedText = attributedText
-        label.horizontalTextAlignment = .center
-        label.verticalTextAlignment = .center
-
-        let textField = TextField()
-        textField.text = "Abc"
-        textField.placeholderText = "Placeholder"
-
-        let progressBar = ProgressBar()
-        progressBar.progress = 0.75
-
-        let sliderView = SliderView()
-        sliderView.minimumValue = 0
-        sliderView.maximumValue = 1
-        sliderView.value = 0.75
-        sliderView.stepValue = 0.05
-        sliderView.showLabels = true
-
-        let scrollView = ScrollView(scrollBarsMode: .vertical)
-        scrollView.backColor = .white
-        scrollView.contentSize = .init(width: 0, height: 300)
-
-        let scrollViewLabel = Label()
-        scrollViewLabel.text = "A\nScroll\nView"
-        scrollViewLabel.horizontalTextAlignment = .center
-        scrollViewLabel.verticalTextAlignment = .center
-        scrollViewLabel.textColor = .black
-
-        let imageView = ImageView(image: createSampleImage())
-        let imageViewPanel = Panel(title: "Image View")
-
-        let firstColumn = StackView(orientation: .vertical)
-        firstColumn.spacing = 5
-        firstColumn.clipToBounds = false
-        let secondColumn = StackView(orientation: .vertical)
-        secondColumn.spacing = 5
-        secondColumn.clipToBounds = false
-        secondColumn.alignment = .fill
-        let thirdColumn = StackView(orientation: .vertical)
-        thirdColumn.spacing = 5
-        thirdColumn.clipToBounds = false
-
-        window.addSubview(firstColumn)
-        window.addSubview(secondColumn)
-        window.addSubview(thirdColumn)
-        firstColumn.addArrangedSubview(panel)
-        firstColumn.addArrangedSubview(radioButton)
-        firstColumn.addArrangedSubview(radioButton2)
-        firstColumn.addArrangedSubview(checkBox1)
-        firstColumn.addArrangedSubview(checkBox2)
-        firstColumn.addArrangedSubview(checkBox3)
-        firstColumn.addArrangedSubview(button)
-        secondColumn.addArrangedSubview(progressBar)
-        secondColumn.addArrangedSubview(sliderView)
-        secondColumn.addArrangedSubview(label)
-        secondColumn.addArrangedSubview(textField)
-        thirdColumn.addArrangedSubview(imageViewPanel)
-        imageViewPanel.addSubview(imageView)
-        window.addSubview(scrollView)
-        panel.addSubview(panelContents)
-        panelContents.addArrangedSubview(radioButton)
-        panelContents.addArrangedSubview(radioButton2)
-        scrollView.addSubview(scrollViewLabel)
+        window.addSubview(tree)
 
         LayoutConstraint.create(first: window.layout.height,
                                 relationship: .greaterThanOrEqual,
-                                offset: 330)
+                                offset: 100)
 
-        firstColumn.layout.makeConstraints { make in
-            make.top == window.contentsLayoutArea + 4
-            make.left == window.contentsLayoutArea + 10
-        }
-        firstColumn.setCustomSpacing(after: panel, 10)
-        firstColumn.setCustomSpacing(after: checkBox3, 15)
-
-        panelContents.layout.makeConstraints { make in
-            make.edges == panel.containerLayoutGuide
-        }
-
-        secondColumn.layout.makeConstraints { make in
-            make.right(of: firstColumn, offset: 15)
-            make.top == window.contentsLayoutArea + 19
-        }
-        secondColumn.setCustomSpacing(after: label, 15)
-
-        thirdColumn.layout.makeConstraints { make in
-            make.right(of: secondColumn, offset: 15)
-            make.top == window.contentsLayoutArea + 4
-            make.right <= window.contentsLayoutArea - 8
-        }
-
-        imageView.layout.makeConstraints { make in
-            make.edges == imageViewPanel.containerLayoutGuide
-        }
-
-        progressBar.layout.makeConstraints { make in
-            make.width == 100
-        }
-        label.layout.makeConstraints { make in
-            make.height == 60
-        }
-        textField.layout.makeConstraints { make in
-            make.height == 24
-        }
-
-        scrollView.layout.makeConstraints { make in
-            make.left == window.contentsLayoutArea + 8
-            make.under(button, offset: 10)
-            make.right == window.contentsLayoutArea - 8
-            make.bottom == window.contentsLayoutArea - 8
-        }
-
-        scrollViewLabel.setContentHuggingPriority(.horizontal, 50)
-        scrollViewLabel.setContentHuggingPriority(.vertical, 50)
-        scrollViewLabel.layout.makeConstraints { make in
-            make.edges == scrollView.contentView
-        }
-
-        button.mouseClicked.addListener(owner: self) { _ in
-            label.isVisible.toggle()
-        }
-
-        sliderView.valueChanged.addListener(owner: self) { (_, event) in
-            progressBar.progress = event.newValue
+        tree.layout.makeConstraints { make in
+            make.edges == window.contentsLayoutArea - 12
         }
 
         window.performLayout()
@@ -309,7 +210,7 @@ class SampleWindow: Blend2DWindowContentType {
     }
 
     func createRenderSettingsWindow() {
-        func toggleFlag(_ sample: SampleWindow,
+        func toggleFlag(_ sample: TreeSampleWindow,
                         _ flag: DebugDraw.DebugDrawFlags,
                         _ event: CancellableValueChangedEventArgs<Checkbox.State>) {
 
@@ -410,7 +311,7 @@ class SampleWindow: Blend2DWindowContentType {
     }
 }
 
-extension SampleWindow: DefaultControlSystemDelegate {
+extension TreeSampleWindow: DefaultControlSystemDelegate {
     func bringRootViewToFront(_ rootView: RootView) {
         rootViews.removeAll(where: { $0 == rootView })
         rootViews.append(rootView)
@@ -442,7 +343,7 @@ extension SampleWindow: DefaultControlSystemDelegate {
     }
 }
 
-extension SampleWindow: RootViewRedrawInvalidationDelegate {
+extension TreeSampleWindow: RootViewRedrawInvalidationDelegate {
     func rootViewInvalidatedLayout(_ rootView: RootView) {
         delegate?.needsLayout(rootView)
     }
@@ -452,7 +353,7 @@ extension SampleWindow: RootViewRedrawInvalidationDelegate {
     }
 }
 
-extension SampleWindow: WindowDelegate {
+extension TreeSampleWindow: WindowDelegate {
     func windowWantsToClose(_ window: Window) {
         if let index = rootViews.firstIndex(of: window) {
             rootViews.remove(at: index)

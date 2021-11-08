@@ -64,3 +64,8 @@ public func GET_Y_LPARAM<T: FixedWidthInteger>(_ lp: T) -> WORD {
 public func GET_WHEEL_DELTA_WPARAM<T: FixedWidthInteger>(_ wParam: T) -> Int16 {
      Int16(bitPattern: HIWORD(wParam))
 }
+
+@_transparent
+public func GET_KEYSTATE_WPARAM<T: FixedWidthInteger>(_ wParam: T) -> WORD {
+    LOWORD(wParam)
+}

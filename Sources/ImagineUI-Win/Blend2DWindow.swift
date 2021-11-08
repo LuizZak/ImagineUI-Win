@@ -157,17 +157,27 @@ public class Blend2DWindow: Win32Window {
 
     public override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         defer {
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseMoved(event: event)
         }
 
         return super.onMouseMove(message)
     }
 
+    public override func onMouseWheel(_ message: WindowMessage) -> LRESULT? {
+        defer {
+            let event = makeMouseEventArgs(message, isMouseWheel: true)
+            content.mouseScroll(event: event)
+        }
+
+        return super.onMouseWheel(message)
+    }
+
     public override func onLeftMouseDown(_ message: WindowMessage) -> LRESULT? {
         defer {
             SetCapture(hwnd)
-            let event = makeMouseEventArgs(message)
+
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseDown(event: event)
         }
 
@@ -178,7 +188,7 @@ public class Blend2DWindow: Win32Window {
         defer {
             SetCapture(hwnd)
 
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseDown(event: event)
         }
 
@@ -189,7 +199,7 @@ public class Blend2DWindow: Win32Window {
         defer {
             SetCapture(hwnd)
 
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseDown(event: event)
         }
 
@@ -200,7 +210,7 @@ public class Blend2DWindow: Win32Window {
         defer {
             ReleaseCapture()
 
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseUp(event: event)
         }
 
@@ -211,7 +221,7 @@ public class Blend2DWindow: Win32Window {
         defer {
             ReleaseCapture()
 
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseUp(event: event)
         }
 
@@ -222,7 +232,7 @@ public class Blend2DWindow: Win32Window {
         defer {
             ReleaseCapture()
 
-            let event = makeMouseEventArgs(message)
+            let event = makeMouseEventArgs(message, isMouseWheel: false)
             content.mouseUp(event: event)
         }
 
@@ -289,35 +299,61 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Message translation
 
-    private func makeMouseEventArgs(_ message: WindowMessage) -> MouseEventArgs {
-        let x = GET_X_LPARAM(message.lParam)
-        let y = GET_Y_LPARAM(message.lParam)
+    private func makeMouseEventArgs(_ message: WindowMessage, isMouseWheel: Bool) -> MouseEventArgs {
+        var x = GET_X_LPARAM(message.lParam)
+        var y = GET_Y_LPARAM(message.lParam)
+
+        // Mouse wheel events receive screen space coordinates instead of client
+        // space, so we need to convert to client space before proceeding.
+        if isMouseWheel {
+            var point = POINT(x: LONG(x), y: LONG(y))
+            ScreenToClient(hwnd, &point)
+            x = WORD(point.x)
+            y = WORD(point.y)
+        }
+
         let location = UIVector(x: Double(x), y: Double(y)) / dpiScalingFactor
         var buttons: MouseButton = []
         var modifiers: KeyboardModifier = []
+        var delta = UIVector.zero
+
+
+        // Extract mouse wheel scroll and virtual key parameters
+        let keyParam: WORD
+        if isMouseWheel {
+            // TODO: Expose this property for customization.
+            let wheelMultiplier = 5.0
+
+            delta.y = Double(Int32(GET_WHEEL_DELTA_WPARAM(message.wParam)) / WHEEL_DELTA) * wheelMultiplier
+
+            keyParam = GET_KEYSTATE_WPARAM(message.wParam)
+        } else {
+            keyParam = WORD(message.wParam)
+        }
 
         // Buttons
-        if IS_BIT_ON(message.wParam, MK_LBUTTON) {
+        if IS_BIT_ON(keyParam, MK_LBUTTON) {
             buttons.insert(.left)
         }
-        if IS_BIT_ON(message.wParam, MK_MBUTTON) {
+        if IS_BIT_ON(keyParam, MK_MBUTTON) {
             buttons.insert(.middle)
         }
-        if IS_BIT_ON(message.wParam, MK_RBUTTON) {
+        if IS_BIT_ON(keyParam, MK_RBUTTON) {
             buttons.insert(.right)
         }
+
         // Modifiers
-        if IS_BIT_ON(message.wParam, MK_CONTROL) {
+        if IS_BIT_ON(keyParam, MK_CONTROL) {
             modifiers.insert(.control)
         }
-        if IS_BIT_ON(message.wParam, MK_SHIFT) {
+        if IS_BIT_ON(keyParam, MK_SHIFT) {
             modifiers.insert(.shift)
         }
 
         let event = MouseEventArgs(
             location: location,
             buttons: buttons,
-            delta: .zero,
+            delta: delta,
             clicks: 0,
             modifiers: modifiers
         )
@@ -346,6 +382,11 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
     }
 
     public func invalidate(bounds: UIRectangle) {
+        assert(!bounds.x.isNaN, "!bounds.x.isNaN")
+        assert(!bounds.y.isNaN, "!bounds.y.isNaN")
+        assert(!bounds.width.isNaN, "!bounds.width.isNaN")
+        assert(!bounds.height.isNaN, "!bounds.height.isNaN")
+
         let screenBounds = bounds.inflatedBy(.init(repeating: 3.0)).scaled(by: dpiScalingFactor).roundedToLargest()
         setNeedsDisplay(screenBounds.asRect)
     }

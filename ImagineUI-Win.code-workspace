@@ -62,6 +62,15 @@
 					"run"
 				]
 			},
+            {
+				"label": "Run Sample (release)",
+				"type": "shell",
+				"command": "python utils\\build.py",
+				"args": [
+					"run",
+					"-c", "release"
+				]
+			},
 		]
 	},
 	"folders": [
@@ -117,6 +126,14 @@
 		"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|Build (debug)",
 		"ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Test",
 		"ShortcutMenuBar.userButton03Command": "workbench.action.tasks.runTask|Run Sample (debug)",
+		"ShortcutMenuBar.userButton04Command": "workbench.action.tasks.runTask|Run Sample (release)",
+		"cSpell.words": [
+			"msvc",
+			"subview",
+			"subviews",
+			"superview",
+			"swiftpm"
+		],
 	},
 	"extensions": {
 		"recommendations": [

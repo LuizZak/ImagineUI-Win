@@ -200,6 +200,16 @@ open class Win32Window {
         return nil
     }
 
+    /// Called when the mouse scrolls within the client area of this window.
+    ///
+    /// Return a non-nil value to prevent the window from sending the message to
+    /// `DefSubclassProc` or `DefWindowProc`.
+    ///
+    /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousewheel
+    open func onMouseWheel(_ message: WindowMessage) -> LRESULT? {
+        return nil
+    }
+
     /// Called when the user presses down the left mouse button within the client
     /// area of this window.
     ///
@@ -388,6 +398,9 @@ fileprivate extension Win32Window {
 
         case WM_MOUSEMOVE:
             return onMouseMove(message)
+
+        case WM_MOUSEWHEEL:
+            return onMouseWheel(message)
 
         case WM_LBUTTONDOWN:
             return onLeftMouseDown(message)
