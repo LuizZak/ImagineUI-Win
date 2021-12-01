@@ -51,7 +51,7 @@
 				"command": "python utils\\build.py",
 				"args": [
 					"-c", "debug",
-					"-t", "ImagineUI-Win_Sample"
+					"-t", "ImagineUI-WinSample"
 				]
 			},
             {
@@ -59,7 +59,8 @@
 				"type": "shell",
 				"command": "python utils\\build.py",
 				"args": [
-					"run"
+					"run",
+					"-t", "ImagineUI-WinSample"
 				]
 			},
             {
@@ -68,7 +69,8 @@
 				"command": "python utils\\build.py",
 				"args": [
 					"run",
-					"-c", "release"
+					"-c", "release",
+					"-t", "ImagineUI-WinSample"
 				]
 			},
             {
@@ -78,6 +80,7 @@
 				"args": [
 					"run",
 					"-c", "release",
+					"-t", "ImagineUI-WinSample",
 					"-d", "DUMP_CONSTRAINTS_TO_DESKTOP"
 				]
 			},

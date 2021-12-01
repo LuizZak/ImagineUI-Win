@@ -92,6 +92,7 @@ def make_argparser() -> argparse.ArgumentParser:
     add_common_args(run_parser)
 
     add_target_arg(build_parser)
+    add_target_arg(run_parser)
     add_manifest_arg(build_parser)
     add_executable_arg(run_parser)
 
@@ -128,9 +129,20 @@ class BuildCommandArgs:
 # Arguments for a run command.
 @dataclass
 class RunCommandArgs:
+    target_name: str | None
     executable_name: str | None
     config: str
     definitions: list[str] | None
+
+    def swift_build_args(self) -> List[str]:
+        args = []
+
+        if self.target_name is not None:
+            args.extend(['--target', self.target_name])
+
+        args.extend(['--configuration', self.config, *win32_debug_args, *toSwiftCDefList(self.definitions)])
+
+        return args
 
     def swift_run_args(self) -> List[str]:
         args = []
@@ -226,13 +238,21 @@ def get_package_description() -> Any:
     return json.loads(j)
 
 
-def default_manifest_path(target: SwiftTarget) -> Path:
-    return Path.cwd().joinpath('Sources').joinpath(target.name).joinpath(f'{target.name}.exe.manifest')
+def default_manifest_path(target_name: str) -> Path:
+    return Path.cwd().joinpath('Sources').joinpath(target_name).joinpath(f'{target_name}.exe.manifest')
 
 
 def run_post_build(settings: PostBuildSettings):
     run('mt', '-nologo', '-manifest', settings.manifest_path, f'-outputresource:{settings.exe_path}')
 
+def run_manifest_patch(build_dir: Path, target_name: str, manifest_path: str):
+    exe_path = build_dir.joinpath(target_name).with_suffix('.exe')
+
+    manifest_path = manifest_path
+    if manifest_path is None:
+        manifest_path = default_manifest_path(target_name)
+
+    run_post_build(PostBuildSettings(exe_path, manifest_path))
 
 def run_build(settings: BuildCommandArgs):
     run('swift', '--version', silent=False)
@@ -254,16 +274,14 @@ def run_build(settings: BuildCommandArgs):
 
     if target.type == SwiftTargetType.EXECUTABLE:
         build_dir = Path(run_output('swift', 'build', "--show-bin-path", *args).decode('UTF8').strip())
-        exe_path = build_dir.joinpath(target.name).with_suffix('.exe')
 
         manifest_path = settings.manifest_path
         if manifest_path is None:
-            manifest_path = default_manifest_path(target)
+            manifest_path = default_manifest_path(target.name)
 
-        run_post_build(PostBuildSettings(exe_path, manifest_path))
+        run_manifest_patch(build_dir, target.name, manifest_path)
 
     return
-
 
 def run_test(settings: TestCommandArgs):
     args = settings.swift_test_args()
@@ -273,8 +291,18 @@ def run_test(settings: TestCommandArgs):
 
 
 def run_target(settings: RunCommandArgs):
-    args = settings.swift_run_args()
-    run('swift', 'run', *args)
+    args = settings.swift_build_args()
+
+    run('swift', 'build', *args)
+
+    if settings.target_name is not None:
+        build_dir = Path(run_output('swift', 'build', "--show-bin-path", *args).decode('UTF8').strip())
+
+        manifest_path = default_manifest_path(settings.target_name)
+
+        run_manifest_patch(build_dir, settings.target_name, manifest_path)
+
+    run('swift', 'run', '--skip-build', *settings.swift_run_args())
 
     return
 
@@ -298,7 +326,7 @@ def do_test_command(args: Any):
 
 
 def do_run_command(args: Any):
-    settings = RunCommandArgs(args.executable, args.configuration, args.definitions)
+    settings = RunCommandArgs(args.target, args.executable, args.configuration, args.definitions)
     run_target(settings)
     return
 
