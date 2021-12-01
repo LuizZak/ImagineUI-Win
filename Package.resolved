@@ -5,8 +5,17 @@
         "package": "CassowarySwift",
         "repositoryURL": "https://github.com/LuizZak/CassowarySwift.git",
         "state": {
-          "branch": "cassowary-swift-optimizations",
-          "revision": "3f6a3c01320c5b4f53d919ed3cf5f5c365c1a570",
+          "branch": "cassowary-swift",
+          "revision": "b86feeb4467e40e656ef3707babf75264710e96d",
+          "version": null
+        }
+      },
+      {
+        "package": "ImagineUI",
+        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
+        "state": {
+          "branch": "master",
+          "revision": "cac309876a0fc5977ef771e52cdf423a2e9d6a49",
           "version": null
         }
       },
