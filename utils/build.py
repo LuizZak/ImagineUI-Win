@@ -59,7 +59,7 @@ def make_argparser() -> argparse.ArgumentParser:
 
     def add_manifest_arg(parser: argparse.ArgumentParser):
         parser.add_argument('-m', '--manifest-path',
-                            type=Optional[Path],
+                            type=Path,
                             dest='manifest_path',
                             default=None,
                             help="Path to a .manifest file to use when building .exe targets. If not provided, a path of the form "
@@ -94,6 +94,7 @@ def make_argparser() -> argparse.ArgumentParser:
     add_target_arg(build_parser)
     add_target_arg(run_parser)
     add_manifest_arg(build_parser)
+    add_manifest_arg(run_parser)
     add_executable_arg(run_parser)
 
     return argparser
@@ -132,6 +133,7 @@ class RunCommandArgs:
     target_name: str | None
     executable_name: str | None
     config: str
+    manifest_path: Path | None
     definitions: list[str] | None
 
     def swift_build_args(self) -> List[str]:
@@ -298,7 +300,9 @@ def run_target(settings: RunCommandArgs):
     if settings.target_name is not None:
         build_dir = Path(run_output('swift', 'build', "--show-bin-path", *args).decode('UTF8').strip())
 
-        manifest_path = default_manifest_path(settings.target_name)
+        manifest_path = settings.manifest_path
+        if manifest_path is None:
+            manifest_path = default_manifest_path(settings.target_name)
 
         run_manifest_patch(build_dir, settings.target_name, manifest_path)
 
@@ -326,7 +330,7 @@ def do_test_command(args: Any):
 
 
 def do_run_command(args: Any):
-    settings = RunCommandArgs(args.target, args.executable, args.configuration, args.definitions)
+    settings = RunCommandArgs(args.target, args.executable, args.configuration, args.manifest_path, args.definitions)
     run_target(settings)
     return
 
