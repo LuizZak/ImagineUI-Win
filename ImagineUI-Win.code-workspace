@@ -71,6 +71,16 @@
 					"-c", "release"
 				]
 			},
+            {
+				"label": "Run Sample (release + dump constraints)",
+				"type": "shell",
+				"command": "python utils\\build.py",
+				"args": [
+					"run",
+					"-c", "release",
+					"-d", "DUMP_CONSTRAINTS_TO_DESKTOP"
+				]
+			},
 		]
 	},
 	"folders": [

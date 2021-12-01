@@ -72,6 +72,12 @@ def make_argparser() -> argparse.ArgumentParser:
                             default='debug',
                             help="Build configuration to use. Can either be 'debug' or 'release'. Defaults to 'debug'.")
 
+        parser.add_argument('-d',
+                            action='append',
+                            type=str,
+                            dest='definitions',
+                            help="A list of -D parameters to pass to -Xswiftc during compilation. Used to enable/disable '#if <DEFINITION_NAME>' in Swift code.")
+
     argparser = DefaultSubcommandArgParse(description='Builds ImagineUI-Win and/or sample project.')
     argparser.set_default_subparser('build')
 
@@ -92,12 +98,21 @@ def make_argparser() -> argparse.ArgumentParser:
     return argparser
 
 
+def toSwiftCDefList(definitions: list[str] | None) -> list[str]:
+    if definitions is None:
+        return []
+
+    for d in definitions:
+        yield "-Xswiftc"
+        yield f"-D{d}"
+
 # Arguments for a build command.
 @dataclass
 class BuildCommandArgs:
     target_name: str | None
     config: str
     manifest_path: Path | None
+    definitions: list[str] | None
 
     def swift_build_args(self) -> List[str]:
         args = []
@@ -105,7 +120,7 @@ class BuildCommandArgs:
         if self.target_name is not None:
             args.extend(['--target', self.target_name])
 
-        args.extend(['--configuration', self.config, *win32_debug_args])
+        args.extend(['--configuration', self.config, *win32_debug_args, *toSwiftCDefList(self.definitions)])
 
         return args
 
@@ -115,6 +130,7 @@ class BuildCommandArgs:
 class RunCommandArgs:
     executable_name: str | None
     config: str
+    definitions: list[str] | None
 
     def swift_run_args(self) -> List[str]:
         args = []
@@ -122,7 +138,7 @@ class RunCommandArgs:
         if self.executable_name is not None:
             args.append(self.executable_name)
 
-        args.extend(['--configuration', self.config, *win32_debug_args])
+        args.extend(['--configuration', self.config, *win32_debug_args, *toSwiftCDefList(self.definitions)])
 
         return args
 
@@ -131,9 +147,10 @@ class RunCommandArgs:
 @dataclass
 class TestCommandArgs:
     config: str
+    definitions: list[str] | None
 
     def swift_test_args(self) -> List[str]:
-        return ['--configuration', self.config, *win32_debug_args]
+        return ['--configuration', self.config, *win32_debug_args, *toSwiftCDefList(self.definitions)]
 
 
 # Settings for post-build process.
@@ -263,7 +280,7 @@ def run_target(settings: RunCommandArgs):
 
 
 def do_build_command(args: Any):
-    settings = BuildCommandArgs(args.target, args.configuration, args.manifest_path)
+    settings = BuildCommandArgs(args.target, args.configuration, args.manifest_path, args.definitions)
     run_build(settings)
 
     print('Success!')
@@ -272,7 +289,7 @@ def do_build_command(args: Any):
 
 
 def do_test_command(args: Any):
-    settings = TestCommandArgs(args.configuration)
+    settings = TestCommandArgs(args.configuration, args.definitions)
     run_test(settings)
 
     print('Success!')
@@ -281,7 +298,7 @@ def do_test_command(args: Any):
 
 
 def do_run_command(args: Any):
-    settings = RunCommandArgs(args.executable, args.configuration)
+    settings = RunCommandArgs(args.executable, args.configuration, args.definitions)
     run_target(settings)
     return
 

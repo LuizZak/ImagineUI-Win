@@ -6,18 +6,26 @@ import MinWin32
 import ImagineUI_Win
 
 private class DataSource: TreeViewDataSource {
-    func hasItems(_ treeView: TreeView, at hierarchyIndex: TreeView.HierarchyIndex) -> Bool {
-        if hierarchyIndex.indices == [2] {
+    let icon: Image = {
+        let context = Blend2DRendererContext().createImageRenderer(width: 10, height: 10)
+
+        context.renderer.clear(.black)
+
+        return context.renderedImage()
+    }()
+
+    func hasSubItems(at index: TreeView.ItemIndex) -> Bool {
+        if index == TreeView.ItemIndex(parent: .root, index: 2) {
             return true
         }
-        if hierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
+        if index.asHierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
             return true
         }
 
         return false
     }
 
-    func numberOfItems(_ treeView: TreeView, at hierarchyIndex: TreeView.HierarchyIndex) -> Int {
+    func numberOfItems(at hierarchyIndex: TreeView.HierarchyIndex) -> Int {
         if hierarchyIndex.isRoot {
             return 10
         }
@@ -37,6 +45,14 @@ private class DataSource: TreeViewDataSource {
         }
 
         return "Item \(index.index + 1)"
+    }
+
+    func iconForItem(at index: TreeView.ItemIndex) -> Image? {
+        if index.asHierarchyIndex.indices == [3] || index.asHierarchyIndex.indices == [2, 0, 0] {
+            return icon
+        }
+
+        return nil
     }
 }
 

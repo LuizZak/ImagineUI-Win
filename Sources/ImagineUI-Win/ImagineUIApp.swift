@@ -68,7 +68,7 @@ public class ImagineUIApp {
 
         var ICCE: INITCOMMONCONTROLSEX =
             INITCOMMONCONTROLSEX(dwSize: DWORD(MemoryLayout<INITCOMMONCONTROLSEX>.size),
-                                dwICC: dwICC)
+                                 dwICC: dwICC)
         if !InitCommonControlsEx(&ICCE) {
             WinLogger.error("InitCommonControlsEx: \(Win32Error(win32: GetLastError()))")
         }
