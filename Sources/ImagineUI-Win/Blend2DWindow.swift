@@ -308,8 +308,8 @@ public class Blend2DWindow: Win32Window {
         if isMouseWheel {
             var point = POINT(x: LONG(x), y: LONG(y))
             ScreenToClient(hwnd, &point)
-            x = WORD(point.x)
-            y = WORD(point.y)
+            x = Int16(point.x)
+            y = Int16(point.y)
         }
 
         let location = UIVector(x: Double(x), y: Double(y)) / dpiScalingFactor

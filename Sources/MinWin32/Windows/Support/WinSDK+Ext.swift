@@ -51,13 +51,13 @@ public func IS_ERROR<T: FixedWidthInteger>(_ hr: T) -> Bool {
 }
 
 @_transparent
-public func GET_X_LPARAM<T: FixedWidthInteger>(_ lp: T) -> WORD {
-    LOWORD(lp)
+public func GET_X_LPARAM<T: FixedWidthInteger>(_ lp: T) -> Int16 {
+    Int16(bitPattern: LOWORD(lp))
 }
 
 @_transparent
-public func GET_Y_LPARAM<T: FixedWidthInteger>(_ lp: T) -> WORD {
-    HIWORD(lp)
+public func GET_Y_LPARAM<T: FixedWidthInteger>(_ lp: T) -> Int16 {
+    Int16(bitPattern: HIWORD(lp))
 }
 
 @_transparent
