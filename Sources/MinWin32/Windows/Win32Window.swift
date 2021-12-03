@@ -92,7 +92,11 @@ open class Win32Window {
         needsLayout = true
 
         RunLoop.main.perform { [weak self] in
-            self?.onLayout()
+            guard let self = self else { return }
+
+            while self.needsLayout {
+                self.onLayout()
+            }
         }
     }
 
