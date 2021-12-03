@@ -424,6 +424,7 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
         }
 
         if let hCursor = hCursor {
+            SetCursor(hCursor)
             SetClassLongPtrW(hwnd, GCLP_HCURSOR, hCursorToLONG_PTR(hCursor))
         }
     }
