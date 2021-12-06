@@ -36,4 +36,5 @@ public protocol Blend2DWindowContentDelegate: AnyObject {
     func setMouseCursor(_ cursor: MouseCursorKind)
     func setMouseHiddenUntilMouseMoves()
     func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?)
+    func preferredRenderScaleChanged(_ renderScale: UIVector)
 }

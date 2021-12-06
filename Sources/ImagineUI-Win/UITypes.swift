@@ -99,3 +99,11 @@ extension RECT {
         .init(left: Double(left), top: Double(top), right: Double(right), bottom: Double(bottom))
     }
 }
+
+// MARK: Win32 <-> Blend2D Conversions
+extension RECT {
+    @_transparent
+    var asBLRect: BLRect {
+        .init(x: Double(left), y: Double(top), w: Double(right - left), h: Double(bottom - top))
+    }
+}

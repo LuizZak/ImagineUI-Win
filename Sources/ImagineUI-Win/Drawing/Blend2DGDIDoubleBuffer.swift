@@ -44,6 +44,8 @@ class Blend2DGDIDoubleBuffer {
                                 right: screenBuffer.blImage.size.w,
                                 bottom: screenBuffer.blImage.size.h)
 
+        buffer.pushPixelsToScreenBuffer(rect: rect)
+
         let w = rect.right - rect.left
         let h = rect.bottom - rect.top
         screenBuffer.pushPixelsToGDI(rect.asUIRectangle)
@@ -69,6 +71,25 @@ private enum BufferKind {
         case .singleBuffer(let b),
              .doubleBuffer(_, _, let b):
             return b
+        }
+    }
+
+    func pushPixelsToScreenBuffer(rect: RECT) {
+        switch self {
+        case .singleBuffer:
+            break
+        case .doubleBuffer(let primaryBuffer, let primaryBufferScale, let secondaryBuffer):
+            let options = BLContext.CreateOptions(threadCount: 0) // TODO: Multi-threading on Windows is crashing, disable threads in Blend2D for now.
+            let ctx = BLContext(image: secondaryBuffer.blImage, options: options)!
+
+            ctx.clipToRect(rect.asBLRect)
+
+            let sizeI = primaryBuffer.size.scaled(by: 1 / primaryBufferScale)
+            let size = BLSize(w: Double(sizeI.w), h: Double(sizeI.h))
+            ctx.blitScaledImage(primaryBuffer, rectangle: BLRect(location: .zero, size: size))
+
+            ctx.flush(flags: .sync)
+            ctx.end()
         }
     }
 

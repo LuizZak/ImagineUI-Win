@@ -438,4 +438,9 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
             SetFocus(hwnd)
         }
     }
+
+    public func preferredRenderScaleChanged(_ renderScale: UIVector) {
+        recreateBuffers()
+        setNeedsDisplay()
+    }
 }

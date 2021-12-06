@@ -39,7 +39,7 @@ private class DataSource: TreeViewDataSource {
         return 0
     }
 
-    func titleForItem(at index: TreeView.ItemIndex) -> String {
+    func titleForItem(at index: TreeView.ItemIndex) -> AttributedText {
         if !index.parent.isRoot {
             return "Item \(index.parent.indices.map { "\($0 + 1)" }.joined(separator: " -> ")) -> \(index.index + 1)"
         }
@@ -71,7 +71,7 @@ class TreeSampleWindow: Blend2DWindowContentType {
 
     let rendererContext = Blend2DRendererContext()
 
-    var preferredRenderScale: UIVector = UIVector(repeating: 1)
+    var preferredRenderScale: UIVector = UIVector(repeating: 2)
 
     var controlSystem = DefaultControlSystem()
 
