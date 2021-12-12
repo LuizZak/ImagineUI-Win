@@ -173,11 +173,11 @@ class SampleWindow: ImagineUIWindowContent {
             make.edges == scrollView.contentView
         }
 
-        button.mouseClicked.addListener(owner: self) { _ in
+        button.mouseClicked.addListener(weakOwner: self) { _ in
             label.isVisible.toggle()
         }
 
-        sliderView.valueChanged.addListener(owner: self) { (_, event) in
+        sliderView.valueChanged.addListener(weakOwner: self) { (_, event) in
             progressBar.progress = event.newValue
         }
 
@@ -242,17 +242,17 @@ class SampleWindow: ImagineUIWindowContent {
             make.right <= window.contentsLayoutArea - 12
         }
 
-        boundsCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        boundsCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .viewBounds, event)
         }
-        layoutCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        layoutCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .layoutGuideBounds, event)
         }
-        constrCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        constrCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .constraints, event)

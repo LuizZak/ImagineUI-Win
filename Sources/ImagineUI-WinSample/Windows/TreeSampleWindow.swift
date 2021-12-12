@@ -154,17 +154,17 @@ class TreeSampleWindow: ImagineUIWindowContent {
             make.right <= window.contentsLayoutArea - 12
         }
 
-        boundsCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        boundsCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .viewBounds, event)
         }
-        layoutCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        layoutCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .layoutGuideBounds, event)
         }
-        constrCheckbox.checkboxStateWillChange.addListener(owner: self) { [weak self] (_, event) in
+        constrCheckbox.checkboxStateWillChange.addListener(weakOwner: self) { [weak self] (_, event) in
             guard let self = self else { return }
 
             toggleFlag(self, .constraints, event)

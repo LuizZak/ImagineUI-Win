@@ -210,6 +210,10 @@ extension ImagineUIWindowContent: DefaultControlSystemDelegate {
         _tooltipsManager.showTooltip(tooltip, view: view, location: location)
     }
 
+    open func updateTooltip(_ tooltip: Tooltip) {
+        _tooltipsManager.updateTooltip(tooltip)
+    }
+
     open func hideTooltip() {
         _tooltipsManager.hideTooltip()
     }
