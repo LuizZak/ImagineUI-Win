@@ -9,7 +9,8 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     private var controlSystem = DefaultControlSystem()
     private var rootViews: [RootView]
     private var currentRedrawRegion: UIRectangle? = nil
-    private var debugDrawFlags: Set<DebugDraw.DebugDrawFlags> = []
+    private let _tooltipContainer: RootView = RootView()
+    private let _tooltipsManager: TooltipsManager
 
     private(set) public var size: UIIntSize
 
@@ -17,6 +18,8 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     public var height: Int { size.height }
 
     public var preferredRenderScale: UIVector = .init(repeating: 1)
+
+    public var debugDrawFlags: Set<DebugDraw.DebugDrawFlags> = []
 
     /// The default refresh color for this window content.
     /// If `nil`, no region clear is done before render calls and the last
@@ -33,6 +36,8 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     public weak var delegate: Blend2DWindowContentDelegate?
 
     public init(size: UIIntSize) {
+        _tooltipsManager = TooltipsManager(container: _tooltipContainer)
+
         self.size = size
         bounds = BLRect(location: .zero, size: BLSize(w: Double(size.width), h: Double(size.height)))
         rootViews = []
@@ -43,15 +48,30 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
 
     open func initialize() {
         addRootView(rootView)
+        addRootView(_tooltipContainer)
+
+        rootView.passthroughMouseCapture = true
+        _tooltipContainer.passthroughMouseCapture = true
+    }
+
+    open func didClose() {
+
     }
 
     open func addRootView(_ view: RootView) {
         view.invalidationDelegate = self
+        view.rootControlSystem = controlSystem
         rootViews.append(view)
+
+        if view !== _tooltipContainer && rootViews.contains(_tooltipContainer) {
+            // Keep the tooltip container above all other views
+            bringRootViewToFront(_tooltipContainer)
+        }
     }
 
     open func removeRootView(_ view: RootView) {
         view.invalidationDelegate = nil
+        view.rootControlSystem = nil
         rootViews.removeAll { $0 === view }
     }
 
@@ -68,6 +88,8 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
 
         rootView.location = .zero
         rootView.size = .init(width: Double(width), height: Double(height))
+
+        _tooltipContainer.area = .init(x: 0, y: 0, width: Double(width), height: Double(height))
 
         bounds = BLRect(location: .zero, size: BLSize(w: Double(width), h: Double(height)))
         currentRedrawRegion = bounds.asRectangle
@@ -145,24 +167,26 @@ open class ImagineUIWindowContent: Blend2DWindowContentType {
     open func keyPress(event: KeyPressEventArgs) {
         controlSystem.onKeyPress(event)
     }
-
-    open func didClose() {
-
-    }
 }
 
 extension ImagineUIWindowContent: DefaultControlSystemDelegate {
     open func bringRootViewToFront(_ rootView: RootView) {
         rootViews.removeAll(where: { $0 == rootView })
-        rootViews.append(rootView)
+
+        // Keep the tooltip container above all other views
+        if rootView !== _tooltipContainer, let index = rootViews.firstIndex(of: _tooltipContainer) {
+            rootViews.insert(rootView, at: index)
+        } else {
+            rootViews.append(rootView)
+        }
 
         rootView.invalidate()
     }
 
     open func controlViewUnder(point: UIVector, enabledOnly: Bool) -> ControlView? {
-        for window in rootViews.reversed() {
-            let converted = window.convertFromScreen(point)
-            if let view = window.hitTestControl(converted, enabledOnly: enabledOnly) {
+        for rootView in rootViews.reversed() {
+            let converted = rootView.convertFromScreen(point)
+            if let view = rootView.hitTestControl(converted, enabledOnly: enabledOnly) {
                 return view
             }
         }
@@ -180,6 +204,18 @@ extension ImagineUIWindowContent: DefaultControlSystemDelegate {
 
     open func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
         delegate?.firstResponderChanged(newFirstResponder)
+    }
+
+    open func showTooltip(_ tooltip: Tooltip, view: View, location: PreferredTooltipLocation) {
+        _tooltipsManager.showTooltip(tooltip, view: view, location: location)
+    }
+
+    open func hideTooltip() {
+        _tooltipsManager.hideTooltip()
+    }
+
+    open func updateTooltipCursorLocation(_ location: UIPoint) {
+        _tooltipsManager.updateTooltipCursorLocation(location)
     }
 }
 

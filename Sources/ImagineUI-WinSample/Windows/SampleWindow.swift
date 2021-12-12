@@ -5,49 +5,31 @@ import Blend2DRenderer
 import MinWin32
 import ImagineUI_Win
 
-class SampleWindow: Blend2DWindowContentType {
-    private var lastFrame: TimeInterval = 0
+class SampleWindow: ImagineUIWindowContent {
     private var timer: Timer?
-    weak var delegate: Blend2DWindowContentDelegate?
-    var bounds: BLRect
-
-    var size: UIIntSize
-
-    var width: Int { size.width }
-    var height: Int { size.height }
 
     let rendererContext = Blend2DRendererContext()
 
-    var preferredRenderScale: UIVector = UIVector(repeating: 1)
-
-    var controlSystem = DefaultControlSystem()
-
-    var rootViews: [RootView]
-
-    var debugDrawFlags: Set<DebugDraw.DebugDrawFlags> = []
-
-    init(size: UIIntSize = .init(width: 600, height: 500)) {
-        self.size = size
-        bounds = BLRect(location: .zero, size: BLSize(w: Double(size.width), h: Double(size.height)))
-        rootViews = []
-        controlSystem.delegate = self
-
-        initializeWindows()
-        initializeTimer()
+    override init(size: UIIntSize = .init(width: 600, height: 500)) {
+        super.init(size: size)
     }
 
     deinit {
         timer?.invalidate()
     }
 
+    override func initialize() {
+        super.initialize()
+
+        initializeWindows()
+        initializeTimer()
+    }
+
     func initializeWindows() {
         let window =
         Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
                title: "Window")
-        window.delegate = self
         window.areaIntoConstraintsMask = [.location]
-        window.rootControlSystem = controlSystem
-        window.invalidationDelegate = self
 
         let panel = Panel(title: "A Panel")
         let panelContents = StackView(orientation: .vertical)
@@ -203,9 +185,7 @@ class SampleWindow: Blend2DWindowContentType {
 
         createRenderSettingsWindow()
 
-        rootViews.append(window)
-
-        lastFrame = Stopwatch.global.timeIntervalSinceStart()
+        addRootView(window)
     }
 
     private func initializeTimer() {
@@ -218,94 +198,11 @@ class SampleWindow: Blend2DWindowContentType {
         self.timer = timer
     }
 
-    func willStartLiveResize() {
+    override func didClose() {
+        super.didClose()
 
-    }
-
-    func didEndLiveResize() {
-
-    }
-
-    func didClose() {
         WinLogger.info("\(self): Closed")
         app.requestQuit()
-    }
-
-    func resize(_ newSize: UIIntSize) {
-        self.size = newSize
-
-        bounds = BLRect(location: .zero, size: BLSize(w: Double(width), h: Double(height)))
-
-        for view in rootViews {
-            view.setNeedsLayout()
-        }
-    }
-
-    func invalidateScreen() {
-        delegate?.invalidate(bounds: bounds.asRectangle)
-    }
-
-    func update(_ time: TimeInterval) {
-        // Fixed-frame update
-        let delta = time - lastFrame
-        lastFrame = time
-
-        Scheduler.instance.onFixedFrame(delta)
-    }
-
-    func performLayout() {
-        // Layout loop
-        for rootView in rootViews {
-            rootView.performLayout()
-        }
-    }
-
-    func render(context ctx: BLContext, renderScale: UIVector, clipRegion: ClipRegion) {
-        let renderer = Blend2DRenderer(context: ctx)
-        renderer.scale(by: renderScale)
-
-        renderer.setFill(.cornflowerBlue)
-        renderer.fill(clipRegion.bounds())
-
-        ctx.clipToRect(clipRegion.bounds().asBLRect)
-
-        // Redraw loop
-        for rootView in rootViews {
-            rootView.renderRecursive(in: renderer, screenRegion: clipRegion)
-        }
-
-        // Debug render
-        for rootView in rootViews {
-            DebugDraw.debugDrawRecursive(rootView, flags: debugDrawFlags, in: renderer)
-        }
-    }
-
-    func mouseDown(event: MouseEventArgs) {
-        controlSystem.onMouseDown(event)
-    }
-
-    func mouseMoved(event: MouseEventArgs) {
-        controlSystem.onMouseMove(event)
-    }
-
-    func mouseUp(event: MouseEventArgs) {
-        controlSystem.onMouseUp(event)
-    }
-
-    func mouseScroll(event: MouseEventArgs) {
-        controlSystem.onMouseWheel(event)
-    }
-
-    func keyDown(event: KeyEventArgs) {
-        controlSystem.onKeyDown(event)
-    }
-
-    func keyUp(event: KeyEventArgs) {
-        controlSystem.onKeyUp(event)
-    }
-
-    func keyPress(event: KeyPressEventArgs) {
-        controlSystem.onKeyPress(event)
     }
 
     func createRenderSettingsWindow() {
@@ -323,11 +220,8 @@ class SampleWindow: Blend2DWindowContentType {
         }
 
         let window = Window(area: .zero, title: "Debug render settings")
-        window.delegate = self
         window.areaIntoConstraintsMask = [.location]
         window.setShouldCompress(true)
-        window.rootControlSystem = controlSystem
-        window.invalidationDelegate = self
 
         let boundsCheckbox = Checkbox(title: "View Bounds")
         let layoutCheckbox = Checkbox(title: "Layout Guides")
@@ -364,10 +258,10 @@ class SampleWindow: Blend2DWindowContentType {
             toggleFlag(self, .constraints, event)
         }
 
-        rootViews.append(window)
+        addRootView(window)
     }
 
-    func createSampleImage() -> Image {
+    private func createSampleImage() -> Image {
         let imgRenderer = rendererContext.createImageRenderer(width: 64, height: 64)
 
         let ctx = imgRenderer.renderer
@@ -407,74 +301,5 @@ class SampleWindow: Blend2DWindowContentType {
         ctx.fill(UICircle(x: 50, y: 20, radius: 10))
 
         return imgRenderer.renderedImage()
-    }
-}
-
-extension SampleWindow: DefaultControlSystemDelegate {
-    func bringRootViewToFront(_ rootView: RootView) {
-        rootViews.removeAll(where: { $0 == rootView })
-        rootViews.append(rootView)
-
-        rootView.invalidate()
-    }
-
-    func controlViewUnder(point: UIVector, enabledOnly: Bool) -> ControlView? {
-        for window in rootViews.reversed() {
-            let converted = window.convertFromScreen(point)
-            if let view = window.hitTestControl(converted, enabledOnly: enabledOnly) {
-                return view
-            }
-        }
-
-        return nil
-    }
-
-    func setMouseCursor(_ cursor: MouseCursorKind) {
-        delegate?.setMouseCursor(cursor)
-    }
-
-    func setMouseHiddenUntilMouseMoves() {
-        delegate?.setMouseHiddenUntilMouseMoves()
-    }
-
-    func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
-        delegate?.firstResponderChanged(newFirstResponder)
-    }
-}
-
-extension SampleWindow: RootViewRedrawInvalidationDelegate {
-    func rootViewInvalidatedLayout(_ rootView: RootView) {
-        delegate?.needsLayout(rootView)
-    }
-
-    func rootView(_ rootView: RootView, invalidateRect rect: UIRectangle) {
-        delegate?.invalidate(bounds: rect)
-    }
-}
-
-extension SampleWindow: WindowDelegate {
-    func windowWantsToClose(_ window: Window) {
-        if let index = rootViews.firstIndex(of: window) {
-            rootViews.remove(at: index)
-            invalidateScreen()
-        }
-    }
-
-    func windowWantsToMaximize(_ window: Window) {
-        switch window.windowState {
-        case .maximized:
-            window.setWindowState(.normal)
-
-        case .normal, .minimized:
-            window.setWindowState(.maximized)
-        }
-    }
-
-    func windowWantsToMinimize(_ window: Window) {
-        window.setWindowState(.minimized)
-    }
-
-    func windowSizeForFullscreen(_ window: Window) -> UISize {
-        return bounds.asRectangle.size
     }
 }
