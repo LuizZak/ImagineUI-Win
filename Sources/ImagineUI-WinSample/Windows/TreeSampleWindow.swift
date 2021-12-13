@@ -112,8 +112,9 @@ class TreeSampleWindow: ImagineUIWindowContent {
         self.timer = timer
     }
 
-    override func didClose() {
-        WinLogger.info("\(self): Closed")
+    override func didCloseWindow() {
+        super.didCloseWindow()
+
         app.requestQuit()
     }
 

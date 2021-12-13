@@ -19,7 +19,7 @@ public class ImagineUIApp {
     }
 
     /// Opens a window to show a given content.
-    public func show(content: Blend2DWindowContentType) {
+    public func show(content: ImagineUIContentType) {
         let settings = Win32Window.CreationSettings(
             title: "ImagineUI-Win Sample Window", size:
             content.size.asSize

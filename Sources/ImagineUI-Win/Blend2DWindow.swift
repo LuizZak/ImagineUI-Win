@@ -27,12 +27,12 @@ public class Blend2DWindow: Win32Window {
     public var updateRate: Double = 60
 
     public let updateStopwatch = Stopwatch.start()
-    public let content: Blend2DWindowContentType
+    public let content: ImagineUIContentType
 
     /// Event raised when the window has been closed.
     @Event public var closed: EventSourceWithSender<Blend2DWindow, Void>
 
-    public init(settings: CreationSettings, content: Blend2DWindowContentType) {
+    public init(settings: CreationSettings, content: ImagineUIContentType) {
         self.content = content
 
         super.init(settings: settings)
@@ -110,7 +110,7 @@ public class Blend2DWindow: Win32Window {
 
         WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
-        content.didClose()
+        content.didCloseWindow()
     }
 
     public override func onPaint(_ message: WindowMessage) {
@@ -147,7 +147,9 @@ public class Blend2DWindow: Win32Window {
 
         let clip = Blend2DClipRegion(region: .init(rectangle: .init(rounding: rect.asBLRect)))
 
-        content.render(context: ctx, renderScale: scale * dpiScalingFactor, clipRegion: clip)
+        let renderer = Blend2DRenderer(context: ctx)
+
+        content.render(renderer: renderer, renderScale: scale * dpiScalingFactor, clipRegion: clip)
 
         ctx.flush(flags: .sync)
         ctx.end()
@@ -376,12 +378,12 @@ extension Blend2DWindow: Win32KeyboardManagerDelegate {
     }
 }
 
-extension Blend2DWindow: Blend2DWindowContentDelegate {
-    public func needsLayout(_ view: View) {
+extension Blend2DWindow: ImagineUIContentDelegate {
+    public func needsLayout(_ content: ImagineUIContentType, _ view: View) {
         setNeedsLayout()
     }
 
-    public func invalidate(bounds: UIRectangle) {
+    public func invalidate(_ content: ImagineUIContentType, bounds: UIRectangle) {
         assert(!bounds.x.isNaN, "!bounds.x.isNaN")
         assert(!bounds.y.isNaN, "!bounds.y.isNaN")
         assert(!bounds.width.isNaN, "!bounds.width.isNaN")
@@ -391,7 +393,7 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
         setNeedsDisplay(screenBounds.asRect)
     }
 
-    public func setMouseCursor(_ cursor: MouseCursorKind) {
+    public func setMouseCursor(_ content: ImagineUIContentType, cursor: MouseCursorKind) {
         var hCursor: HCURSOR?
 
         // TODO: Implement cursor change
@@ -429,17 +431,17 @@ extension Blend2DWindow: Blend2DWindowContentDelegate {
         }
     }
 
-    public func setMouseHiddenUntilMouseMoves() {
+    public func setMouseHiddenUntilMouseMoves(_ content: ImagineUIContentType) {
         // TODO: Implement cursor hiding
     }
 
-    public func firstResponderChanged(_ newFirstResponder: KeyboardEventHandler?) {
+    public func firstResponderChanged(_ content: ImagineUIContentType, _ newFirstResponder: KeyboardEventHandler?) {
         if newFirstResponder != nil {
             SetFocus(hwnd)
         }
     }
 
-    public func preferredRenderScaleChanged(_ renderScale: UIVector) {
+    public func preferredRenderScaleChanged(_ content: ImagineUIContentType, renderScale: UIVector) {
         recreateBuffers()
         setNeedsDisplay()
     }

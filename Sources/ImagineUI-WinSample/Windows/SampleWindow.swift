@@ -198,10 +198,9 @@ class SampleWindow: ImagineUIWindowContent {
         self.timer = timer
     }
 
-    override func didClose() {
-        super.didClose()
+    override func didCloseWindow() {
+        super.didCloseWindow()
 
-        WinLogger.info("\(self): Closed")
         app.requestQuit()
     }
 

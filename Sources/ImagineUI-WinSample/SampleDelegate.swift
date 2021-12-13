@@ -1,7 +1,7 @@
 import ImagineUI_Win
 
 class SampleDelegate: ImagineUIAppDelegate {
-    var main: Blend2DWindowContentType?
+    var main: ImagineUIContentType?
 
     func appDidLaunch() throws {
         let main = TreeSampleWindow()
