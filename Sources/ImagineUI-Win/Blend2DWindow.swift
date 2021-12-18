@@ -145,7 +145,7 @@ public class Blend2DWindow: Win32Window {
         let options = BLContext.CreateOptions(threadCount: 0) // TODO: Multi-threading on Windows is crashing, disable threads in Blend2D for now.
         let ctx = BLContext(image: image, options: options)!
 
-        let clip = Blend2DClipRegion(region: .init(rectangle: .init(rounding: rect.asBLRect)))
+        let clip = UIRegionClipRegion(region: .init(rectangle: rect))
 
         let renderer = Blend2DRenderer(context: ctx)
 

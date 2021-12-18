@@ -7,6 +7,7 @@ import ImagineUI_Win
 
 class SampleWindow: ImagineUIWindowContent {
     private var timer: Timer?
+    private let data: TreeDataSource = TreeDataSource()
 
     let rendererContext = Blend2DRendererContext()
 
@@ -21,14 +22,17 @@ class SampleWindow: ImagineUIWindowContent {
     override func initialize() {
         super.initialize()
 
-        initializeWindows()
+        createSampleWindow()
+        createTreeViewWindow()
+        createRenderSettingsWindow()
         initializeTimer()
     }
 
-    func initializeWindows() {
+    func createSampleWindow() {
         let window =
-        Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
-               title: "Window")
+            Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
+                   title: "Window")
+        window.delegate = self
         window.areaIntoConstraintsMask = [.location]
 
         let panel = Panel(title: "A Panel")
@@ -130,10 +134,6 @@ class SampleWindow: ImagineUIWindowContent {
         firstColumn.setCustomSpacing(after: panel, 10)
         firstColumn.setCustomSpacing(after: checkBox3, 15)
 
-        panelContents.layout.makeConstraints { make in
-            make.edges == panel.containerLayoutGuide
-        }
-
         secondColumn.layout.makeConstraints { make in
             make.right(of: firstColumn, offset: 15)
             make.top == window.contentsLayoutArea + 19
@@ -144,6 +144,10 @@ class SampleWindow: ImagineUIWindowContent {
             make.right(of: secondColumn, offset: 15)
             make.top == window.contentsLayoutArea + 4
             make.right <= window.contentsLayoutArea - 8
+        }
+
+        panelContents.layout.makeConstraints { make in
+            make.edges == panel.containerLayoutGuide
         }
 
         imageView.layout.makeConstraints { make in
@@ -183,7 +187,31 @@ class SampleWindow: ImagineUIWindowContent {
 
         window.performLayout()
 
-        createRenderSettingsWindow()
+        addRootView(window)
+    }
+
+    func createTreeViewWindow() {
+        let window =
+            Window(area: UIRectangle(x: 150, y: 50, width: 320, height: 330),
+                   title: "Window")
+        window.areaIntoConstraintsMask = [.location]
+        window.delegate = self
+
+        let tree = TreeView()
+        tree.dataSource = data
+        tree.reloadData()
+
+        window.addSubview(tree)
+
+        LayoutConstraint.create(first: window.layout.height,
+                                relationship: .greaterThanOrEqual,
+                                offset: 100)
+
+        tree.layout.makeConstraints { make in
+            make.edges == window.contentsLayoutArea - 12
+        }
+
+        window.performLayout()
 
         addRootView(window)
     }
@@ -221,6 +249,7 @@ class SampleWindow: ImagineUIWindowContent {
         let window = Window(area: .zero, title: "Debug render settings")
         window.areaIntoConstraintsMask = [.location]
         window.setShouldCompress(true)
+        window.delegate = self
 
         let boundsCheckbox = Checkbox(title: "View Bounds")
         let layoutCheckbox = Checkbox(title: "Layout Guides")
@@ -300,5 +329,56 @@ class SampleWindow: ImagineUIWindowContent {
         ctx.fill(UICircle(x: 50, y: 20, radius: 10))
 
         return imgRenderer.renderedImage()
+    }
+}
+
+private class TreeDataSource: TreeViewDataSource {
+    let icon: Image = {
+        let context = Blend2DRendererContext().createImageRenderer(width: 10, height: 10)
+
+        context.renderer.clear(.black)
+
+        return context.renderedImage()
+    }()
+
+    func hasSubItems(at index: TreeView.ItemIndex) -> Bool {
+        if index == TreeView.ItemIndex(parent: .root, index: 2) {
+            return true
+        }
+        if index.asHierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
+            return true
+        }
+
+        return false
+    }
+
+    func numberOfItems(at hierarchyIndex: TreeView.HierarchyIndex) -> Int {
+        if hierarchyIndex.isRoot {
+            return 10
+        }
+        if hierarchyIndex.indices == [2] {
+            return 2
+        }
+        if hierarchyIndex.isSubHierarchy(of: TreeView.HierarchyIndex(indices: [2, 0])) {
+            return 1
+        }
+
+        return 0
+    }
+
+    func titleForItem(at index: TreeView.ItemIndex) -> AttributedText {
+        if !index.parent.isRoot {
+            return "Item \(index.parent.indices.map { "\($0 + 1)" }.joined(separator: " -> ")) -> \(index.index + 1)"
+        }
+
+        return "Item \(index.index + 1)"
+    }
+
+    func iconForItem(at index: TreeView.ItemIndex) -> Image? {
+        if index.asHierarchyIndex.indices == [3] || index.asHierarchyIndex.indices == [2, 0, 0] {
+            return icon
+        }
+
+        return nil
     }
 }

@@ -4,7 +4,10 @@ class SampleDelegate: ImagineUIAppDelegate {
     var main: ImagineUIContentType?
 
     func appDidLaunch() throws {
-        let main = TreeSampleWindow()
+        // Disable bitmap caching to smoothen out UI
+        ControlView.globallyCacheAsBitmap = false
+
+        let main = SampleWindow()
         app.show(content: main)
 
         self.main = main
