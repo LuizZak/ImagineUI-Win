@@ -29,9 +29,9 @@ class Win32TextClipboard: TextClipboard {
         EmptyClipboard()
 
         let cString = text.wide
-        let size = SIZE_T(cString.count)
+        let size = SIZE_T(cString.count * MemoryLayout<WCHAR>.size)
 
-        guard let data = GlobalAlloc(0, size) else {
+        guard let data = GlobalAlloc(UINT(GMEM_MOVEABLE), size) else {
             return
         }
         guard let pchData = GlobalLock(data) else {
@@ -46,6 +46,8 @@ class Win32TextClipboard: TextClipboard {
 
             memcpy(pchData, baseAddress, Int(size))
         }
+
+        SetClipboardData(UINT(CF_UNICODETEXT), data)
     }
 
     func containsText() -> Bool {

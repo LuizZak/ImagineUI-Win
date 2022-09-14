@@ -147,6 +147,7 @@
 			"superview",
 			"swiftpm"
 		],
+		"lldb.library": "C:\\Library\\Developer\\Toolchains\\unknown-Asserts-development.xctoolchain\\usr\\bin\\liblldb.dll",
 	},
 	"extensions": {
 		"recommendations": [

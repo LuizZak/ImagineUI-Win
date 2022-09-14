@@ -11,15 +11,6 @@
         }
       },
       {
-        "package": "ImagineUI",
-        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
-        "state": {
-          "branch": "master",
-          "revision": "4eff9e0c8846445a535d1fc6d4fdd594d554e670",
-          "version": null
-        }
-      },
-      {
         "package": "SwiftBlend2D",
         "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
         "state": {
