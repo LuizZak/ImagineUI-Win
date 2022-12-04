@@ -22,6 +22,10 @@ public class Blend2DWindow: Win32Window {
         size.asUIIntSize.scaled(by: dpiScalingFactor)
     }
 
+    /// Number of rendering threads to use in Blend2D during rendering.
+    /// A value of 0 specifies synchronous rendering with no threading.
+    public var renderingThreads: UInt32 = 0
+
     /// Rate of update calls per second.
     /// Affects how much the content.update() function is called each second.
     public var updateRate: Double = 60
@@ -138,11 +142,11 @@ public class Blend2DWindow: Win32Window {
             paintImmediateBuffer(image: buffer, scale: scale, rect: uiRect)
         }
 
-        buffer.renderBufferToScreen(hdc, rect: ps.rcPaint)
+        buffer.renderBufferToScreen(hdc, rect: ps.rcPaint, renderingThreads: renderingThreads)
     }
 
     private func paintImmediateBuffer(image: BLImage, scale: UIVector, rect: UIRectangle) {
-        let options = BLContext.CreateOptions(threadCount: 0) // TODO: Multi-threading on Windows is crashing, disable threads in Blend2D for now.
+        let options = BLContext.CreateOptions(threadCount: renderingThreads)
         let ctx = BLContext(image: image, options: options)!
 
         let clip = UIRegionClipRegion(region: .init(rectangle: rect))
