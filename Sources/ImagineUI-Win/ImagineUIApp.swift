@@ -49,9 +49,11 @@ public class ImagineUIApp {
         }
 
         try UISettings.initialize(
-            .init(fontManager: settings.fontManager,
-                  defaultFontPath: settings.defaultFontPath,
-                  timeInSecondsFunction: { Stopwatch.global.timeIntervalSinceStart() })
+            .init(
+                fontManager: settings.fontManager,
+                defaultFontPath: settings.defaultFontPath,
+                timeInSecondsFunction: { Stopwatch.global.timeIntervalSinceStart() }
+            )
         )
 
         // Enable Per Monitor DPI Awareness
@@ -59,25 +61,32 @@ public class ImagineUIApp {
             WinLogger.error("SetProcessDpiAwarenessContext: \(Win32Error(win32: GetLastError()))")
         }
 
-        let dwICC: DWORD = DWORD(ICC_BAR_CLASSES)
-            | DWORD(ICC_DATE_CLASSES)
-            | DWORD(ICC_LISTVIEW_CLASSES)
-            | DWORD(ICC_NATIVEFNTCTL_CLASS)
-            | DWORD(ICC_PROGRESS_CLASS)
-            | DWORD(ICC_STANDARD_CLASSES)
+        let dwICC: DWORD =
+            DWORD(ICC_BAR_CLASSES) |
+            DWORD(ICC_DATE_CLASSES) |
+            DWORD(ICC_LISTVIEW_CLASSES) |
+            DWORD(ICC_NATIVEFNTCTL_CLASS) |
+            DWORD(ICC_PROGRESS_CLASS) |
+            DWORD(ICC_STANDARD_CLASSES)
 
         var ICCE: INITCOMMONCONTROLSEX =
-            INITCOMMONCONTROLSEX(dwSize: DWORD(MemoryLayout<INITCOMMONCONTROLSEX>.size),
-                                 dwICC: dwICC)
+            INITCOMMONCONTROLSEX(
+                dwSize: DWORD(MemoryLayout<INITCOMMONCONTROLSEX>.size),
+                dwICC: dwICC
+            )
+        
         if !InitCommonControlsEx(&ICCE) {
             WinLogger.error("InitCommonControlsEx: \(Win32Error(win32: GetLastError()))")
         }
 
         var pAppRegistration: PAPPSTATE_REGISTRATION?
         let ulStatus =
-            RegisterAppStateChangeNotification(pApplicationStateChangeRoutine,
-                                               unsafeBitCast(self as AnyObject, to: PVOID.self),
-                                               &pAppRegistration)
+            RegisterAppStateChangeNotification(
+                pApplicationStateChangeRoutine,
+                unsafeBitCast(self as AnyObject, to: PVOID.self),
+                &pAppRegistration
+            )
+        
         if ulStatus != ERROR_SUCCESS {
             WinLogger.error("RegisterAppStateChangeNotification: \(Win32Error(win32: GetLastError()))")
         }
