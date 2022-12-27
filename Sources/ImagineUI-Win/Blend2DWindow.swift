@@ -107,7 +107,7 @@ public class Blend2DWindow: Win32Window {
 
         resizeApp()
 
-        WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), content.size: \(content.size)")
+        WinLogger.info("DPI for window changed: \(dpi), new sizes: contentSize: \(contentSize), scaledContentSize: \(scaledContentSize)")
     }
 
     public override func onClose(_ message: WindowMessage) {
@@ -507,5 +507,9 @@ extension Blend2DWindow: ImagineUIContentDelegate {
 
         recreateBuffers()
         setNeedsDisplay()
+    }
+
+    public func windowDpiScalingFactor(_ content: ImagineUIContentType) -> Double {
+        return dpiScalingFactor
     }
 }
