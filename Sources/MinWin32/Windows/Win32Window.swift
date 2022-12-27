@@ -14,6 +14,9 @@ open class Win32Window {
     /// Set to `true` when a `WM_DESTROY` message has been received.
     private var isDestroyed: Bool = false
 
+    /// Whether `TrackMouseEvent` is activated for this window.
+    private var isMouseTrackingOn: Bool = false
+
     /// Default base window class definition for this window type.
     public static var defaultWindowClass: WindowClass = WindowClass(className: "Win32Window")
 
@@ -43,6 +46,17 @@ open class Win32Window {
     /// to changes in `self.dpi`.
     public private(set) var dpiScalingFactor: Double = 1.0
 
+    /// Whether the window should automatically invoke `TrackMouseEvent` whenever
+    /// the mouse cursor enters the client area to raise a `WM_MOUSELEAVE` event
+    /// the next time the mouse cursor leaves the client area.
+    ///
+    /// Setting this value to `false` stops `TrackMouseEvent` from being called
+    /// during `onMouseMove(_:)`.
+    ///
+    /// Defaults to `true`.
+    public var trackMouseLeave: Bool = true
+
+    /// The handle pointer for the underlying Win32 window object.
     public let hwnd: HWND
 
     /// The window class definition for this `Win32Window` instance.
@@ -64,6 +78,19 @@ open class Win32Window {
         if let index = Win32Window.openWindows.firstIndex(where: { $0 === self }) {
             Win32Window.openWindows.remove(at: index)
         }
+    }
+
+    /// Configures mouse tracking for the current window so mouse leave events
+    /// can be properly raised.
+    private func setupMouseTracking() {
+        guard !isMouseTrackingOn else { return }
+
+        var event = TRACKMOUSEEVENT()
+        event.cbSize = DWORD(MemoryLayout<TRACKMOUSEEVENT>.size)
+        event.hwndTrack = hwnd
+        event.dwFlags = DWORD(TME_LEAVE)
+
+        isMouseTrackingOn = TrackMouseEvent(&event)
     }
 
     open func initialize() {
@@ -194,13 +221,42 @@ open class Win32Window {
 
     // MARK: Mouse events
 
+    /// Called when the mouse leaves the client area of this window.
+    ///
+    /// Mouse tracking is automatically setup for this window while
+    /// `self.trackMouseLeave` is `true` so mouse leave events can be raised
+    /// appropriately when mouse enters the client area.
+    ///
+    /// Win32 API reference: https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-mouseleave
+    open func onMouseLeave(_ message: WindowMessage) {
+        isMouseTrackingOn = false
+    }
+
+    /// Called when the mouse hovers on top of the client area of this window
+    /// within a small rectangle for a period of time.
+    ///
+    /// This event is not setup automatically and `TrackMouseEvent` needs to be
+    /// invoked in order to setup this type of tracking behaviour.
+    ///
+    /// Win32 API reference: https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-mousehover
+    open func onMouseHover(_ message: WindowMessage) {
+        isMouseTrackingOn = false
+    }
+
     /// Called when the mouse moves within the client area of this window.
+    ///
+    /// Also sets up mouse tracking so `onMouseLeave(_:)` can be raised next time
+    /// the mouse leaves the control area of this window.
     ///
     /// Return a non-nil value to prevent the window from sending the message to
     /// `DefSubclassProc` or `DefWindowProc`.
     ///
     /// Win32 API reference: https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousemove
     open func onMouseMove(_ message: WindowMessage) -> LRESULT? {
+        if trackMouseLeave {
+            setupMouseTracking()
+        }
+
         return nil
     }
 
@@ -409,6 +465,14 @@ fileprivate extension Win32Window {
 
         case WM_SIZE:
             onResize(message)
+            return 0
+        
+        case WM_MOUSEHOVER:
+            onMouseHover(message)
+            return 0
+        
+        case WM_MOUSELEAVE:
+            onMouseLeave(message)
             return 0
 
         case WM_MOUSEMOVE:

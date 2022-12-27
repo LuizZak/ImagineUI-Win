@@ -162,6 +162,14 @@ public class Blend2DWindow: Win32Window {
 
     // MARK: Mouse Events
 
+    public override func onMouseLeave(_ message: WindowMessage) {
+        defer {
+            content.mouseLeave()
+        }
+
+        super.onMouseLeave(message)
+    }
+
     public override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .other)
