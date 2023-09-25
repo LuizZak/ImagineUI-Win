@@ -80,13 +80,15 @@ public class FileLogHandler: LogHandler {
         self.stream = try FileHandlerOutputStream(localFile: url)
     }
 
-    public func log(level: Logger.Level,
-                    message: Logger.Message,
-                    metadata: Logger.Metadata?,
-                    source: String,
-                    file: String,
-                    function: String,
-                    line: UInt) {
+    public func log(
+        level: Logger.Level,
+        message: Logger.Message,
+        metadata: Logger.Metadata?,
+        source: String,
+        file: String,
+        function: String,
+        line: UInt
+    ) {
 
         let prettyMetadata = metadata?.isEmpty ?? true
             ? self.prettyMetadata

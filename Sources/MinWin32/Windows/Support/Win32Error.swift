@@ -49,12 +49,24 @@ extension Win32Error: CustomStringConvertible {
         case .errno(let errno):
             short = "errno \(errno)"
 
-            // Short-circuit the formatting path as this does not do a `LocalAlloc`
-            // and does not use `FormatMessageW`.
-            guard let description = _wcserror(errno) else {
+            struct Error: Swift.Error {
+            }
+
+            do {
+                let description = try String(decodingWideCStringBufferLength: 80) { buffer in
+                    guard let pointer = buffer.baseAddress else {
+                        throw Error()
+                    }
+
+                    guard _wcserror_s(pointer, buffer.count, errno) == 0 else {
+                        throw Error()
+                    }
+                }
+
+                return "\(short) - \(description)"
+            } catch {
                 return short
             }
-            return "\(short) - \(String(decodingCString: description, as: UTF16.self))"
 
         case .win32(let error):
             short = "Win32 Error \(error)"
