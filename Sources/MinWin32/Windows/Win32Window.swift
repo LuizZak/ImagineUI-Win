@@ -102,7 +102,7 @@ open class Win32Window {
     /// Displays this window on the screen.
     ///
     /// Should not be called if the window has been closed.
-    open func show() {
+    open func show(position: InitialPosition = .default) {
         if !Win32Window.openWindows.contains(where: { $0 === self }) {
             Win32Window.openWindows.append(self)
         }
@@ -112,6 +112,22 @@ open class Win32Window {
         }
 
         ShowWindow(hwnd, SW_RESTORE)
+
+        // Re-center, depending on desired settings
+        switch position {
+        case .default:
+            break
+
+        case .centered:
+            let monitor = MonitorFromWindow(hwnd, UInt32(MONITOR_DEFAULTTONEAREST))
+            var info: MONITORINFO = .init()
+            info.cbSize = UInt32(MemoryLayout<MONITORINFO>.size)
+            GetMonitorInfoW(monitor, &info)
+
+            let position = (info.rcWork.size.asPoint / 2 - size / 2)
+
+            SetWindowPos(hwnd, nil, position.asPOINT.x, position.asPOINT.y, 0, 0, UINT(SWP_NOZORDER | SWP_NOSIZE))
+        }
     }
 
     open func setNeedsLayout() {
@@ -466,11 +482,11 @@ fileprivate extension Win32Window {
         case WM_SIZE:
             onResize(message)
             return 0
-        
+
         case WM_MOUSEHOVER:
             onMouseHover(message)
             return 0
-        
+
         case WM_MOUSELEAVE:
             onMouseLeave(message)
             return 0
@@ -480,7 +496,7 @@ fileprivate extension Win32Window {
 
         case WM_MOUSEWHEEL:
             return onMouseWheel(message)
-        
+
         case WM_MOUSEHWHEEL:
             return onMouseHWheel(message)
 

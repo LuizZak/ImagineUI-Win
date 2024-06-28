@@ -19,14 +19,17 @@ public class ImagineUIApp {
     }
 
     /// Opens a window to show a given content.
-    public func show(content: ImagineUIContentType) {
+    public func show(
+        content: ImagineUIContentType,
+        position: Win32Window.InitialPosition = .default
+    ) {
         let settings = Win32Window.CreationSettings(
-            title: "ImagineUI-Win Sample Window", size:
-            content.size.asSize
+            title: "ImagineUI-Win Sample Window",
+            size: content.size.asSize
         )
         let window = Blend2DWindow(settings: settings, content: content)
 
-        window.show()
+        window.show(position: position)
     }
 
     /// Marks the program as finished executing and quits.
@@ -74,7 +77,7 @@ public class ImagineUIApp {
                 dwSize: DWORD(MemoryLayout<INITCOMMONCONTROLSEX>.size),
                 dwICC: dwICC
             )
-        
+
         if !InitCommonControlsEx(&ICCE) {
             WinLogger.error("InitCommonControlsEx: \(Win32Error(win32: GetLastError()))")
         }
@@ -86,7 +89,7 @@ public class ImagineUIApp {
                 unsafeBitCast(self as AnyObject, to: PVOID.self),
                 &pAppRegistration
             )
-        
+
         if ulStatus != ERROR_SUCCESS {
             WinLogger.error("RegisterAppStateChangeNotification: \(Win32Error(win32: GetLastError()))")
         }

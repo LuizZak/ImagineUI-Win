@@ -11,6 +11,24 @@
         }
       },
       {
+        "package": "ImagineUI",
+        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
+        "state": {
+          "branch": "master",
+          "revision": "af6348e1b2a9b7959d95cd3e93bec5083468d646",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-bezier",
+        "repositoryURL": "https://github.com/LuizZak/swift-bezier.git",
+        "state": {
+          "branch": "main",
+          "revision": "84c8d4614e90fbb39a083bb7463242890ad0e475",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftBlend2D",
         "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
         "state": {

@@ -13,6 +13,72 @@ public struct Point {
         self.x = x
         self.y = y
     }
+
+    @inlinable
+    @_transparent
+    public static func - (lhs: Self, rhs: Self) -> Self {
+        Self.op(lhs, rhs, -)
+    }
+
+    @inlinable
+    @_transparent
+    public static func - (lhs: Self, rhs: Size) -> Self {
+        Self.op(lhs, rhs, -)
+    }
+
+    @inlinable
+    @_transparent
+    public static func - (lhs: Size, rhs: Self) -> Self {
+        Self.op(lhs, rhs, -)
+    }
+
+    @inlinable
+    @_transparent
+    public static func + (lhs: Self, rhs: Self) -> Self {
+        Self.op(lhs, rhs, +)
+    }
+
+    @inlinable
+    @_transparent
+    public static func + (lhs: Self, rhs: Size) -> Self {
+        Self.op(lhs, rhs, +)
+    }
+
+    @inlinable
+    @_transparent
+    public static func + (lhs: Size, rhs: Self) -> Self {
+        Self.op(lhs, rhs, +)
+    }
+
+    @inlinable
+    @_transparent
+    public static func / (lhs: Self, rhs: Int) -> Self {
+        Self.op(lhs, rhs, /)
+    }
+
+    @inlinable
+    @_transparent
+    public static func op(_ lhs: Self, _ rhs: Int, _ op: (Int, Int) -> Int) -> Self {
+        .init(x: op(lhs.x, rhs), y: op(lhs.y, rhs))
+    }
+
+    @inlinable
+    @_transparent
+    public static func op(_ lhs: Self, _ rhs: Self, _ op: (Int, Int) -> Int) -> Self {
+        .init(x: op(lhs.x, rhs.x), y: op(lhs.y, rhs.y))
+    }
+
+    @inlinable
+    @_transparent
+    public static func op(_ lhs: Self, _ rhs: Size, _ op: (Int, Int) -> Int) -> Self {
+        .init(x: op(lhs.x, rhs.width), y: op(lhs.y, rhs.height))
+    }
+
+    @inlinable
+    @_transparent
+    public static func op(_ lhs: Size, _ rhs: Self, _ op: (Int, Int) -> Int) -> Self {
+        .init(x: op(lhs.width, rhs.y), y: op(lhs.height, rhs.y))
+    }
 }
 
 public struct Size {
@@ -25,6 +91,18 @@ public struct Size {
     public init(width: Int, height: Int) {
         self.width = width
         self.height = height
+    }
+
+    @inlinable
+    @_transparent
+    public static func / (lhs: Self, rhs: Int) -> Self {
+        Self.op(lhs, rhs, /)
+    }
+
+    @inlinable
+    @_transparent
+    public static func op(_ lhs: Self, _ rhs: Int, _ op: (Int, Int) -> Int) -> Self {
+        .init(width: op(lhs.width, rhs), height: op(lhs.height, rhs))
     }
 }
 
@@ -60,6 +138,16 @@ public extension RECT {
 
         return .init(origin: origin, size: size)
     }
+
+    @_transparent
+    var center: POINT {
+        return POINT(x: (left + right) / 2, y: (top + bottom) / 2)
+    }
+
+    @_transparent
+    var size: SIZE {
+        return SIZE(cx: right - left, cy: bottom - top)
+    }
 }
 
 public extension Point {
@@ -85,6 +173,23 @@ public extension Size {
     @_transparent
     var asPOINT: POINT {
         .init(x: LONG(self.width), y: LONG(self.height))
+    }
+
+    @_transparent
+    var asSIZE: SIZE {
+        .init(cx: LONG(self.width), cy: LONG(self.height))
+    }
+}
+
+public extension SIZE {
+    @_transparent
+    var asPoint: Point {
+        .init(x: Int(self.cx), y: Int(self.cy))
+    }
+
+    @_transparent
+    var asSize: Size {
+        .init(width: Int(self.cx), height: Int(self.cy))
     }
 }
 
