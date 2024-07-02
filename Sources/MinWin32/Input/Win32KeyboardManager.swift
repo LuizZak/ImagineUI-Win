@@ -18,7 +18,10 @@ public class Win32KeyboardManager {
     }
 
     public func onKeyUp(_ message: WindowMessage) -> LRESULT? {
-        return nil
+        let event = makeKeyEventArgs(message)
+        delegate?.keyboardManager(self, onKeyUp: event)
+
+        return 0
     }
 
     public func onSystemKeyDown(_ message: WindowMessage) -> LRESULT? {
