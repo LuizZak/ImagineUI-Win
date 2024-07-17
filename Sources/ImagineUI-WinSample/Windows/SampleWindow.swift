@@ -8,6 +8,7 @@ import ImagineUI_Win
 class SampleWindow: ImagineUIWindowContent {
     private var timer: Timer?
     private let data: TreeDataSource = TreeDataSource()
+    private var comboBoxSelection: Int = 1
 
     let rendererContext = Blend2DRendererContext()
 
@@ -90,6 +91,12 @@ class SampleWindow: ImagineUIWindowContent {
         let imageView = ImageView(image: createSampleImage())
         let imageViewPanel = Panel(title: "Image View")
 
+        let comboBox = ComboBox()
+        comboBox.dataSource = self
+        comboBox.didSelect.addWeakListener(self) { (self, event) in
+            self.comboBoxSelection = event.args
+        }
+
         let firstColumn = StackView(orientation: .vertical)
         firstColumn.spacing = 5
         firstColumn.clipToBounds = false
@@ -116,6 +123,7 @@ class SampleWindow: ImagineUIWindowContent {
         secondColumn.addArrangedSubview(label)
         secondColumn.addArrangedSubview(textField)
         thirdColumn.addArrangedSubview(imageViewPanel)
+        thirdColumn.addArrangedSubview(comboBox)
         imageViewPanel.addSubview(imageView)
         window.addSubview(scrollView)
         panel.addSubview(panelContents)
@@ -169,6 +177,7 @@ class SampleWindow: ImagineUIWindowContent {
             make.under(button, offset: 10)
             make.right == window.contentsLayoutArea - 8
             make.bottom == window.contentsLayoutArea - 8
+            make.width == scrollView.contentView
         }
 
         scrollViewLabel.setContentHuggingPriority(.horizontal, 50)
@@ -292,43 +301,59 @@ class SampleWindow: ImagineUIWindowContent {
     private func createSampleImage() -> Image {
         let imgRenderer = rendererContext.createImageRenderer(width: 64, height: 64)
 
-        let ctx = imgRenderer.renderer
+        return imgRenderer.withRenderer { renderer in
+            renderer.clear()
+            renderer.setFill(Color.skyBlue)
+            renderer.fill(UIRectangle(x: 0, y: 0, width: 64, height: 64))
 
-        ctx.clear()
-        ctx.setFill(Color.skyBlue)
-        ctx.fill(UIRectangle(x: 0, y: 0, width: 64, height: 64))
+            // Render two mountains
+            renderer.setFill(Color.forestGreen)
+            renderer.translate(x: 15, y: 40)
+            let mount1 = BLTriangle.unitEquilateral.scaledBy(x: 35, y: 35)
+            let mount2 = BLTriangle.unitEquilateral.scaledBy(x: 30, y: 30)
 
-        // Render two mountains
-        ctx.setFill(Color.forestGreen)
-        ctx.translate(x: 15, y: 40)
-        let mount1 = BLTriangle.unitEquilateral.scaledBy(x: 35, y: 35)
-        let mount2 = BLTriangle.unitEquilateral.scaledBy(x: 30, y: 30)
+            renderer.fill(
+                UIPolygon(vertices: [
+                    mount1.p0.asVector2,
+                    mount1.p1.asVector2,
+                    mount1.p2.asVector2
+                ])
+            )
+            renderer.translate(x: 15, y: 4)
+            renderer.fill(
+                UIPolygon(vertices: [
+                    mount2.p0.asVector2,
+                    mount2.p1.asVector2,
+                    mount2.p2.asVector2
+                ])
+            )
 
-        ctx.fill(
-            UIPolygon(vertices: [
-                mount1.p0.asVector2,
-                mount1.p1.asVector2,
-                mount1.p2.asVector2
-            ])
-        )
-        ctx.translate(x: 15, y: 4)
-        ctx.fill(
-            UIPolygon(vertices: [
-                mount2.p0.asVector2,
-                mount2.p1.asVector2,
-                mount2.p2.asVector2
-            ])
-        )
+            // Render ground
+            renderer.resetTransform()
+            renderer.fill(UIRectangle(x: 0, y: 45, width: 64, height: 64))
 
-        // Render ground
-        ctx.resetTransform()
-        ctx.fill(UIRectangle(x: 0, y: 45, width: 64, height: 64))
+            // Render sun
+            renderer.setFill(Color.yellow)
+            renderer.fill(UICircle(x: 50, y: 20, radius: 10))
+        }
+    }
+}
 
-        // Render sun
-        ctx.setFill(Color.yellow)
-        ctx.fill(UICircle(x: 50, y: 20, radius: 10))
+extension SampleWindow: ComboBox.DataSource {
+    var comboBoxItems: [AttributedText] {
+        ["Apples", "Oranges", "Mangoes", "Grapes", "Bananas", "Strawberries", "Blueberries", "Watermelons"]
+    }
 
-        return imgRenderer.renderedImage()
+    func comboBox(_ comboBox: ComboBox, itemAt index: Int) -> ComboBoxItemEntry {
+        return .item(.init(title: comboBoxItems[index]))
+    }
+
+    func comboBoxItemCount(_ comboBox: ComboBox) -> Int {
+        return self.comboBoxItems.count
+    }
+
+    func comboBoxSelectedItemIndex(_ comboBox: ComboBox) -> Int {
+        return comboBoxSelection
     }
 }
 
@@ -336,9 +361,9 @@ private class TreeDataSource: TreeViewDataSource {
     let icon: Image = {
         let context = Blend2DRendererContext().createImageRenderer(width: 10, height: 10)
 
-        context.renderer.clear(.black)
-
-        return context.renderedImage()
+        return context.withRenderer { renderer in
+            renderer.clear(.black)
+        }
     }()
 
     func hasSubItems(at index: TreeView.ItemIndex) -> Bool {

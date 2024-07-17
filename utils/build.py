@@ -13,7 +13,12 @@ from enum import Enum, unique
 from typing import Any, Callable, List, Optional, TypeVar
 from os import PathLike
 
-win32_debug_args = ["-Xswiftc", "-g", "-Xswiftc", "-debug-info-format=codeview", "-Xlinker", "-debug"]
+win32_debug_args = [
+    "-Xswiftc", "-g",
+    "-Xswiftc", "-debug-info-format=codeview",
+    "-Xlinker", "-debug",
+    "-Xlinker", "/ignore:4217", # To silence a very noisy warning in the linker under Windows
+]
 
 
 def make_argparser() -> argparse.ArgumentParser:
@@ -197,6 +202,12 @@ def deserialize_json(target_class: Callable[[Any], T], object_repr: str | bytes 
     bound_signature.apply_defaults()
     return target_class(**bound_signature.arguments)
 
+def print_args(args: Any):
+    print('Arguments:')
+    v = vars(args)
+    for k, v in v.items():
+        print(f'  - {k}: {v}')
+
 
 def run_output(bin_name: str, *args: str | PathLike, echo: bool = True) -> bytes:
     if echo:
@@ -280,13 +291,9 @@ def run_build(settings: BuildCommandArgs):
 
         run_manifest_patch(build_dir, target.name, manifest_path)
 
-    return
-
 def run_test(settings: TestCommandArgs):
     args = settings.swift_test_args()
     run('swift', 'test', *args)
-
-    return
 
 
 def run_target(settings: RunCommandArgs):
@@ -305,31 +312,51 @@ def run_target(settings: RunCommandArgs):
 
     run('swift', 'run', '--skip-build', *settings.swift_run_args())
 
-    return
-
 
 def do_build_command(args: Any):
-    settings = BuildCommandArgs(args.target, args.configuration, args.manifest_path, args.definitions)
+    print('Processing Build request...')
+    print_args(args)
+    print('')
+
+    settings = BuildCommandArgs(
+        args.target,
+        args.configuration,
+        args.manifest_path,
+        args.definitions,
+    )
     run_build(settings)
 
     print('Success!')
 
-    return
-
 
 def do_test_command(args: Any):
-    settings = TestCommandArgs(args.configuration, args.definitions)
+    print('Processing Test request...')
+    print_args(args)
+    print('')
+
+    settings = TestCommandArgs(
+        args.configuration,
+        args.definitions,
+    )
     run_test(settings)
 
     print('Success!')
 
-    return
-
 
 def do_run_command(args: Any):
-    settings = RunCommandArgs(args.target, args.executable, args.configuration, args.manifest_path, args.definitions)
+    print('Processing Run request...')
+    print_args(args)
+    print('')
+
+    settings = RunCommandArgs(
+        args.target,
+        args.executable,
+        args.configuration,
+        args.manifest_path,
+        args.definitions,
+    )
+
     run_target(settings)
-    return
 
 
 def main() -> int:

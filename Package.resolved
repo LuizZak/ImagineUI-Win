@@ -6,16 +6,7 @@
         "repositoryURL": "https://github.com/LuizZak/CassowarySwift.git",
         "state": {
           "branch": "cassowary-swift-optimizations",
-          "revision": "c1e6e8a7d00d22ac686845e1652d2245b097c16e",
-          "version": null
-        }
-      },
-      {
-        "package": "ImagineUI",
-        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
-        "state": {
-          "branch": "master",
-          "revision": "af6348e1b2a9b7959d95cd3e93bec5083468d646",
+          "revision": "b2377a0bb3c0cb43f63278f1a2ef85384d370861",
           "version": null
         }
       },
@@ -24,7 +15,7 @@
         "repositoryURL": "https://github.com/LuizZak/swift-bezier.git",
         "state": {
           "branch": "main",
-          "revision": "84c8d4614e90fbb39a083bb7463242890ad0e475",
+          "revision": "e75de4785793617e2f5190b5d0046bd360cdd259",
           "version": null
         }
       },
@@ -33,7 +24,7 @@
         "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
         "state": {
           "branch": "master",
-          "revision": "a31f5d4ef9706424c731636922e8999640ba3dca",
+          "revision": "855fe139f972fea76afceba23a289846df03ec5d",
           "version": null
         }
       },
@@ -51,7 +42,7 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": "main",
-          "revision": "4e75f88c6ab63bf47a8780ac4adfce830e8478a6",
+          "revision": "db86ac725bb4a194636c716461f5a166e93b29ba",
           "version": null
         }
       }

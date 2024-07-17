@@ -1,158 +1,170 @@
 {
-	"tasks": {
-		"version": "2.0.0",
-		"problemMatcher": [
-			// Compilation
-			{
-				"owner": "swift",
-				"fileLocation": "autoDetect",
-				"pattern": {
-					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-					"file": 1,
-					"line": 2,
-					"column": 3,
-					"severity": 4,
-					"message": 5
-				}
-			},
-			// Fix to detect unit test executions, which do not feature a column during reporting
-			{
-				"owner": "swift",
-				"fileLocation": "autoDetect",
-				"pattern": {
-					"regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
-					"file": 1,
-					"line": 2,
-					"severity": 3,
-					"message": 4
-				}
-			}
-		],
-		"tasks": [
+    "tasks": {
+        "version": "2.0.0",
+        "problemMatcher": [
+            // Compilation
             {
-				"label": "Build (debug)",
-				"type": "shell",
-				"command": "python utils\\build.py",
-				"args": [
-					"-c", "debug"
-				]
-			},
+                "owner": "swift",
+                "fileLocation": "autoDetect",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            // Fix to detect unit test executions, which do not feature a column during reporting
             {
-				"label": "Test",
-				"type": "shell",
-				"command": "python utils\\build.py",
-				"args": [
-					"test"
-				]
-			},
+                "owner": "swift",
+                "fileLocation": "autoDetect",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            }
+        ],
+        "tasks": [
             {
-				"label": "Build Sample (debug)",
-				"type": "shell",
-				"command": "python utils\\build.py",
+                "label": "Build (debug)",
+                "type": "shell",
+				"command": "python312",
 				"args": [
-					"-c", "debug",
-					"-t", "ImagineUI-WinSample"
-				]
-			},
+					"utils/build.py",
+                    "-c", "debug"
+                ],
+            },
             {
-				"label": "Run Sample (debug)",
-				"type": "shell",
-				"command": "python utils\\build.py",
+                "label": "Build (release)",
+                "type": "shell",
+				"command": "python312",
 				"args": [
-					"run",
-					"-t", "ImagineUI-WinSample"
-				]
-			},
+					"utils/build.py",
+                    "-c", "release"
+                ],
+            },
             {
-				"label": "Run Sample (release)",
-				"type": "shell",
-				"command": "python utils\\build.py",
+                "label": "Test",
+                "type": "shell",
+				"command": "python312",
 				"args": [
-					"run",
-					"-c", "release",
-					"-t", "ImagineUI-WinSample"
-				]
-			},
+					"utils/build.py",
+                    "test"
+                ],
+            },
             {
-				"label": "Run Sample (release + dump constraints)",
-				"type": "shell",
-				"command": "python utils\\build.py",
+                "label": "Build Sample (debug)",
+                "type": "shell",
+				"command": "python312",
 				"args": [
-					"run",
-					"-c", "release",
-					"-t", "ImagineUI-WinSample",
-					"-d", "DUMP_CONSTRAINTS_TO_DESKTOP"
-				]
-			},
-		]
-	},
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"name": "Swift Package Dependencies",
-			"path": ".build/checkouts"
-		},
-		{
-			"name": "Build Path",
-			"path": ".build/x86_64-unknown-windows-msvc/debug"
-		}
-	],
-	"settings": {
-		"files.eol": "\n",
-		"files.trimTrailingWhitespace": true,
-		"files.insertFinalNewline": true,
-		"commentAnchors.workspace.excludeFiles": "**/{node_modules,.git,.idea,target,out,build,vendor,.build,.swiftpm}/**/*",
-		"commentAnchors.tags.list": [
-			{
-				"tag": "MARK:",
-				"iconColor": "default",
-				"highlightColor": "#A8C023",
-				"scope": "file"
-			},
-			{
-				"tag": "TODO:",
-				"iconColor": "blue",
-				"highlightColor": "#3ea8ff",
-				"scope": "workspace"
-			},
-			{
-				"tag": "FIXME:",
-				"iconColor": "red",
-				"highlightColor": "#F44336",
-				"scope": "workspace"
-			},
-			{
-				"tag": "NOTE:",
-				"iconColor": "orange",
-				"highlightColor": "#FFB300",
-				"scope": "file"
-			},
-		],
-		"files.exclude": {
-			".git": true,
-			".build": true,
-			".*.sw?": true,
-			"**/.DS_Store": true
-		},
-		"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|Build (debug)",
-		"ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Test",
-		"ShortcutMenuBar.userButton03Command": "workbench.action.tasks.runTask|Run Sample (debug)",
-		"ShortcutMenuBar.userButton04Command": "workbench.action.tasks.runTask|Run Sample (release)",
-		"cSpell.words": [
-			"msvc",
-			"subview",
-			"subviews",
-			"superview",
-			"swiftpm"
-		],
-		"lldb.library": "C:\\Library\\Developer\\Toolchains\\unknown-Asserts-development.xctoolchain\\usr\\bin\\liblldb.dll",
-	},
-	"extensions": {
-		"recommendations": [
-			"exodiusstudios.comment-anchors",
-			"jerrygoyal.shortcut-menu-bar"
-		]
-	}
+					"utils/build.py",
+                    "-c", "debug",
+                    "-t", "ImagineUI-WinSample"
+                ],
+            },
+            {
+                "label": "Run Sample (debug)",
+                "type": "shell",
+				"command": "python312",
+				"args": [
+					"utils/build.py",
+                    "run",
+                    "-t", "ImagineUI-WinSample"
+                ],
+            },
+            {
+                "label": "Run Sample (release)",
+                "type": "shell",
+				"command": "python312",
+				"args": [
+					"utils/build.py",
+                    "run",
+                    "-c", "release",
+                    "-t", "ImagineUI-WinSample"
+                ],
+            },
+            {
+                "label": "Run Sample (release + dump constraints)",
+                "type": "shell",
+                "command": "python312",
+                "args": [
+					"utils/build.py",
+                    "run",
+                    "-c", "release",
+                    "-t", "ImagineUI-WinSample",
+                    "-d", "DUMP_CONSTRAINTS_TO_DESKTOP"
+                ],
+            },
+        ]
+    },
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "name": "Swift Package Dependencies",
+            "path": ".build/checkouts"
+        },
+        {
+            "name": "Build Path",
+            "path": ".build/x86_64-unknown-windows-msvc/debug"
+        }
+    ],
+    "settings": {
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "commentAnchors.workspace.excludeFiles": "**/{node_modules,.git,.idea,target,out,build,vendor,.build,.swiftpm}/**/*",
+        "commentAnchors.tags.anchors": {
+            "MARK:": {
+                "iconColor": "default",
+                "highlightColor": "#A8C023",
+                "scope": "file",
+            },
+            "TODO:": {
+                "iconColor": "blue",
+                "highlightColor": "#3ea8ff",
+                "scope": "workspace",
+            },
+            "FIXME:": {
+                "iconColor": "red",
+                "highlightColor": "#F44336",
+                "scope": "workspace",
+            },
+            "NOTE:": {
+                "iconColor": "orange",
+                "highlightColor": "#FFB300",
+                "scope": "file",
+            },
+        },
+        "files.exclude": {
+            ".git": true,
+            ".build": true,
+            ".*.sw?": true,
+            "**/.DS_Store": true
+        },
+        "ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|Build (debug)",
+        "ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Test",
+        "ShortcutMenuBar.userButton03Command": "workbench.action.tasks.runTask|Run Sample (debug)",
+        "ShortcutMenuBar.userButton04Command": "workbench.action.tasks.runTask|Run Sample (release)",
+        "cSpell.words": [
+            "msvc",
+            "subview",
+            "subviews",
+            "superview",
+            "swiftpm"
+        ],
+
+        "swift.autoGenerateLaunchConfigurations": false,
+    },
+    "extensions": {
+        "recommendations": [
+            "exodiusstudios.comment-anchors",
+            "jerrygoyal.shortcut-menu-bar"
+        ]
+    }
 }
