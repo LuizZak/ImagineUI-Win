@@ -164,7 +164,9 @@ public class Blend2DWindow: Win32Window {
 
     public override func onMouseLeave(_ message: WindowMessage) {
         defer {
-            content.mouseLeave()
+            Task.detached {
+                await self.content.mouseLeave()
+            }
         }
 
         super.onMouseLeave(message)
@@ -173,7 +175,9 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .other)
-            content.mouseMoved(event: event)
+            Task.detached {
+                await self.content.mouseMoved(event: event)
+            }
         }
 
         return super.onMouseMove(message)
@@ -182,7 +186,9 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseWheel(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .mouseWheel)
-            content.mouseScroll(event: event)
+            Task.detached {
+                await self.content.mouseScroll(event: event)
+            }
         }
 
         return super.onMouseWheel(message)
@@ -191,7 +197,9 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseHWheel(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .mouseHWheel)
-            content.mouseScroll(event: event)
+            Task.detached {
+                await self.content.mouseScroll(event: event)
+            }
         }
 
         return super.onMouseHWheel(message)
@@ -202,7 +210,9 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .left)
-            content.mouseDown(event: event)
+            Task.detached {
+                await self.content.mouseDown(event: event)
+            }
         }
 
         return super.onLeftMouseDown(message)
@@ -213,7 +223,9 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .middle)
-            content.mouseDown(event: event)
+            Task.detached {
+                await self.content.mouseDown(event: event)
+            }
         }
 
         return super.onMiddleMouseDown(message)
@@ -224,7 +236,9 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .right)
-            content.mouseDown(event: event)
+            Task.detached {
+                await self.content.mouseDown(event: event)
+            }
         }
 
         return super.onRightMouseDown(message)
@@ -235,7 +249,9 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .left)
-            content.mouseUp(event: event)
+            Task.detached {
+                await self.content.mouseUp(event: event)
+            }
         }
 
         return super.onLeftMouseUp(message)
@@ -246,7 +262,9 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .middle)
-            content.mouseUp(event: event)
+            Task.detached {
+                await self.content.mouseUp(event: event)
+            }
         }
 
         return super.onMiddleMouseUp(message)
@@ -257,7 +275,9 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .right)
-            content.mouseUp(event: event)
+            Task.detached {
+                await self.content.mouseUp(event: event)
+            }
         }
 
         return super.onRightMouseUp(message)
@@ -404,7 +424,7 @@ public class Blend2DWindow: Win32Window {
 
         /// WM_MOUSEHWHEEL message.
         case mouseHWheel
-        
+
         /// Any other mouse message.
         case other
 
@@ -421,15 +441,21 @@ public class Blend2DWindow: Win32Window {
 
 extension Blend2DWindow: Win32KeyboardManagerDelegate {
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: Win32KeyPressEventArgs) {
-        content.keyPress(event: event.asKeyPressEventArgs)
+        Task.detached {
+            await self.content.keyPress(event: event.asKeyPressEventArgs)
+        }
     }
 
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: Win32KeyEventArgs) {
-        content.keyDown(event: event.asKeyEventArgs)
+        Task.detached {
+            await self.content.keyDown(event: event.asKeyEventArgs)
+        }
     }
 
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: Win32KeyEventArgs) {
-        content.keyUp(event: event.asKeyEventArgs)
+        Task.detached {
+            await self.content.keyUp(event: event.asKeyEventArgs)
+        }
     }
 }
 
@@ -448,7 +474,7 @@ extension Blend2DWindow: ImagineUIContentDelegate {
             .inflatedBy(.init(repeating: 3.0))
             .scaled(by: dpiScalingFactor)
             .roundedToLargest()
-        
+
         setNeedsDisplay(screenBounds.asRect)
     }
 

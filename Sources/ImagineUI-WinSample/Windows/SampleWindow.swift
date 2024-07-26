@@ -227,7 +227,9 @@ class SampleWindow: ImagineUIWindowContent {
 
     private func initializeTimer() {
         let timer = Timer(timeInterval: 1 / 60.0, repeats: true) { [weak self] _ in
-            self?.update(Stopwatch.global.timeIntervalSinceStart())
+            Task.detached { [weak self] in
+                await self?.update(Stopwatch.global.timeIntervalSinceStart())
+            }
         }
 
         RunLoop.main.add(timer, forMode: .default)
