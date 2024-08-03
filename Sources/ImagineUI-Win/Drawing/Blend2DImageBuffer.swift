@@ -11,20 +11,40 @@ class Blend2DImageBuffer {
     private var bitmapPointer: UnsafeMutableRawPointer?
 
     let blImage: BLImage
+    let blContext: BLContext
+    let renderingThreads: UInt32
     let hBitmap: HBITMAP
 
     let size: BLSizeI
 
-    convenience init(width: Int, height: Int, hdc: HDC) {
-        self.init(size: .init(w: Int32(width), h: Int32(height)), hdc: hdc)
+    convenience init(
+        width: Int,
+        height: Int,
+        renderingThreads: UInt32,
+        hdc: HDC
+    ) {
+        self.init(
+            size: .init(w: Int32(width), h: Int32(height)),
+            renderingThreads: renderingThreads,
+            hdc: hdc
+        )
     }
 
-    convenience init(size: UIIntSize, hdc: HDC) {
-        self.init(size: size.asBLSizeI, hdc: hdc)
+    convenience init(
+        size: UIIntSize,
+        renderingThreads: UInt32,
+        hdc: HDC
+    ) {
+        self.init(
+            size: size.asBLSizeI,
+            renderingThreads: renderingThreads,
+            hdc: hdc
+        )
     }
 
-    init(size: BLSizeI, hdc: HDC) {
+    init(size: BLSizeI, renderingThreads: UInt32, hdc: HDC) {
         self.size = size
+        self.renderingThreads = renderingThreads
 
         let bitDepth: WORD = 32
 
@@ -48,9 +68,11 @@ class Blend2DImageBuffer {
 
         let stride = Int(size.w) * 4
         self.blImage = BLImage(fromUnownedData: pointer, stride: stride, size: size, format: .xrgb32)
+        self.blContext = BLContext(image: blImage, options: .init(threadCount: renderingThreads))!
     }
 
     deinit {
+        blContext.end()
         DeleteObject(hBitmap)
     }
 

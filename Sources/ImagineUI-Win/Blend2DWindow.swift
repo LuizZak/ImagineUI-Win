@@ -85,7 +85,13 @@ public class Blend2DWindow: Win32Window {
             return
         }
 
-        buffer = .init(contentSize: contentSize.asBLSizeI, format: .xrgb32, hdc: hdc, scale: content.preferredRenderScale)
+        buffer = .init(
+            contentSize: contentSize.asBLSizeI,
+            format: .xrgb32,
+            renderingThreads: renderingThreads,
+            hdc: hdc,
+            scale: content.preferredRenderScale
+        )
     }
 
     // MARK: Events
@@ -139,17 +145,14 @@ public class Blend2DWindow: Win32Window {
 
         let uiRect = ps.rcPaint.asUIRectangle.scaled(by: 1 / dpiScalingFactor)
 
-        buffer.renderingToBuffer { (buffer, scale) in
-            paintImmediateBuffer(image: buffer, scale: scale, rect: uiRect)
+        buffer.renderingToBuffer { (ctx, scale) in
+            paintImmediateBuffer(context: ctx, scale: scale, rect: uiRect)
         }
 
-        buffer.renderBufferToScreen(hdc, rect: ps.rcPaint, renderingThreads: renderingThreads)
+        buffer.renderBufferToScreen(hdc, rect: ps.rcPaint)
     }
 
-    private func paintImmediateBuffer(image: BLImage, scale: UIVector, rect: UIRectangle) {
-        let options = BLContext.CreateOptions(threadCount: renderingThreads)
-        let ctx = BLContext(image: image, options: options)!
-
+    private func paintImmediateBuffer(context ctx: BLContext, scale: UIVector, rect: UIRectangle) {
         let clip = UIRegionClipRegion(region: .init(rectangle: rect))
 
         let renderer = Blend2DRenderer(context: ctx)
@@ -157,7 +160,6 @@ public class Blend2DWindow: Win32Window {
         content.render(renderer: renderer, renderScale: scale * dpiScalingFactor, clipRegion: clip)
 
         ctx.flush(flags: .sync)
-        ctx.end()
     }
 
     // MARK: Mouse Events

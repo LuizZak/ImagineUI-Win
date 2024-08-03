@@ -14,9 +14,9 @@
         "package": "swift-bezier",
         "repositoryURL": "https://github.com/LuizZak/swift-bezier.git",
         "state": {
-          "branch": "main",
+          "branch": null,
           "revision": "7061d2e5396e006e6b80313510c3689917d9569d",
-          "version": null
+          "version": "0.6.0"
         }
       },
       {
