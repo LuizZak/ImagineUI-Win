@@ -24,7 +24,7 @@ public class Blend2DWindow: Win32Window {
 
     /// Number of rendering threads to use in Blend2D during rendering.
     /// A value of 0 specifies synchronous rendering with no threading.
-    public var renderingThreads: UInt32 = 0
+    public var renderingThreads: UInt32 = 6
 
     /// Rate of update calls per second.
     /// Affects how much the content.update() function is called each second.
