@@ -58,15 +58,6 @@ let package = Package(
     ],
     targets: [
         executableTarget,
-        /*
-        .target(
-            name: "MinWin32",
-            dependencies: [
-                .product(name: "SwiftCOM", package: "swift-com"),
-                .product(name: "Logging", package: "swift-log"),
-            ]
-        ),
-        */
         .target(
             name: "ImagineUI-Win",
             dependencies: [
