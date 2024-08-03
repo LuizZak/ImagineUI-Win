@@ -404,7 +404,7 @@ public class Blend2DWindow: Win32Window {
 
         /// WM_MOUSEHWHEEL message.
         case mouseHWheel
-        
+
         /// Any other mouse message.
         case other
 
@@ -448,7 +448,7 @@ extension Blend2DWindow: ImagineUIContentDelegate {
             .inflatedBy(.init(repeating: 3.0))
             .scaled(by: dpiScalingFactor)
             .roundedToLargest()
-        
+
         setNeedsDisplay(screenBounds.asRect)
     }
 

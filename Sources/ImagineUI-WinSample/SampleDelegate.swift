@@ -1,6 +1,7 @@
+import MinWin32
 import ImagineUI_Win
 
-class SampleDelegate: ImagineUIAppDelegate {
+class SampleDelegate: MinWin32AppDelegate {
     var main: ImagineUIContentType?
 
     func appDidLaunch() throws {
