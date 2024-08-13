@@ -27,8 +27,8 @@ func start() throws -> CInt {
 
     let settings = ImagineUIAppStartupSettings(defaultFontPath: fontPath)
 
-    app = ImagineUIApp(delegate: delegate)
-    return try app.run(settings: settings)
+    app = ImagineUIApp(settings: settings, delegate: delegate)
+    return try app.run()
 }
 
 func setupLogging() throws {

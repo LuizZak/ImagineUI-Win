@@ -359,7 +359,7 @@ extension SampleWindow: ComboBox.DataSource {
     }
 }
 
-private class TreeDataSource: TreeViewDataSource {
+private class TreeDataSource: TreeView.DataSource {
     let icon: Image = {
         let context = Blend2DRendererContext().createImageRenderer(width: 10, height: 10)
 

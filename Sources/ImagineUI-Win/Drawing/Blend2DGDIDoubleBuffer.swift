@@ -7,6 +7,7 @@ class Blend2DGDIDoubleBuffer {
     private var contentSize: BLSizeI
     private var scale: UIVector
     private let format: BLFormat
+    private let renderingThreads: UInt32
 
     private var buffer: BufferKind
 
@@ -14,6 +15,7 @@ class Blend2DGDIDoubleBuffer {
     init(
         contentSize: BLSizeI,
         format: BLFormat,
+        renderingThreads: UInt32,
         hdc: HDC,
         scale: UIVector = .init(repeating: 1)
     ) {
@@ -22,7 +24,14 @@ class Blend2DGDIDoubleBuffer {
         self.contentSize = contentSize
         self.scale = scale
         self.format = format
-        self.buffer = .makeBuffer(size: contentSize, format: format, scale: scale, hdc: hdc)
+        self.renderingThreads = renderingThreads
+        self.buffer = .makeBuffer(
+            size: contentSize,
+            renderingThreads: renderingThreads,
+            format: format,
+            scale: scale,
+            hdc: hdc
+        )
     }
 
     /// - precondition: scale > .zero
@@ -35,17 +44,23 @@ class Blend2DGDIDoubleBuffer {
     func resizeBuffer(primary: BLSizeI, scale: UIVector, hdc: HDC) {
         guard contentSize != primary || self.scale != scale else { return }
 
-        self.buffer = .makeBuffer(size: primary, format: format, scale: scale, hdc: hdc)
+        self.buffer.end()
+        self.buffer = .makeBuffer(
+            size: primary,
+            renderingThreads: renderingThreads,
+            format: format,
+            scale: scale,
+            hdc: hdc
+        )
     }
 
-    func renderingToBuffer(_ block: (BLImage, _ renderScale: UIVector) -> Void) {
-        block(buffer.immediateBuffer, scale)
+    func renderingToBuffer(_ block: (BLContext, _ renderScale: UIVector) -> Void) {
+        block(buffer.immediateBufferContext, scale)
     }
 
     func renderBufferToScreen(
         _ hdc: HDC,
-        rect: RECT? = nil,
-        renderingThreads: UInt32
+        rect: RECT? = nil
     ) {
 
         let screenBuffer = buffer.screenBuffer
@@ -57,7 +72,7 @@ class Blend2DGDIDoubleBuffer {
             bottom: screenBuffer.blImage.size.h
         )
 
-        buffer.pushPixelsToScreenBuffer(rect: rect, renderingThreads: renderingThreads)
+        buffer.pushPixelsToScreenBuffer(rect: rect)
 
         let w = rect.right - rect.left
         let h = rect.bottom - rect.top
@@ -68,13 +83,29 @@ class Blend2DGDIDoubleBuffer {
 
 private enum BufferKind {
     case singleBuffer(Blend2DImageBuffer)
-    case doubleBuffer(primaryBuffer: BLImage, primaryBufferScale: UIVector, secondaryBuffer: Blend2DImageBuffer)
+    case doubleBuffer(
+        primaryContext: BLContext,
+        primaryBuffer: BLImage,
+        primaryBufferScale: UIVector,
+        secondaryBuffer: Blend2DImageBuffer
+    )
+
+    var immediateBufferContext: BLContext {
+        switch self {
+        case .singleBuffer(let buffer):
+            return buffer.blContext
+
+        case .doubleBuffer(let primaryContext, _, _, _):
+            return primaryContext
+        }
+    }
 
     var immediateBuffer: BLImage {
         switch self {
         case .singleBuffer(let buffer):
             return buffer.blImage
-        case .doubleBuffer(let primaryBuffer, _, _):
+
+        case .doubleBuffer(_, let primaryBuffer, _, _):
             return primaryBuffer
         }
     }
@@ -82,18 +113,29 @@ private enum BufferKind {
     var screenBuffer: Blend2DImageBuffer {
         switch self {
         case .singleBuffer(let b),
-             .doubleBuffer(_, _, let b):
+             .doubleBuffer(_, _, _, let b):
             return b
         }
     }
 
-    func pushPixelsToScreenBuffer(rect: RECT, renderingThreads: UInt32) {
+    /// Clears memory retained by this buffer reference.
+    func end() {
         switch self {
         case .singleBuffer:
             break
-        case .doubleBuffer(let primaryBuffer, let primaryBufferScale, let secondaryBuffer):
-            let options = BLContext.CreateOptions(threadCount: renderingThreads)
-            let ctx = BLContext(image: secondaryBuffer.blImage, options: options)!
+
+        case .doubleBuffer(let primaryContext, _, _, _):
+            primaryContext.end()
+        }
+    }
+
+    func pushPixelsToScreenBuffer(rect: RECT) {
+        switch self {
+        case .singleBuffer:
+            break
+
+        case .doubleBuffer(_, let primaryBuffer, let primaryBufferScale, let secondaryBuffer):
+            let ctx = secondaryBuffer.blContext
 
             ctx.clipToRect(rect.asBLRect)
 
@@ -102,18 +144,30 @@ private enum BufferKind {
             ctx.blitScaledImage(primaryBuffer, rectangle: BLRect(location: .zero, size: size))
 
             ctx.flush(flags: .sync)
-            ctx.end()
         }
     }
 
-    static func makeBuffer(size: BLSizeI, format: BLFormat, scale: UIVector, hdc: HDC) -> Self {
-        let secondary = Blend2DImageBuffer(size: size, hdc: hdc)
+    static func makeBuffer(
+        size: BLSizeI,
+        renderingThreads: UInt32,
+        format: BLFormat,
+        scale: UIVector,
+        hdc: HDC
+    ) -> Self {
+        let secondary = Blend2DImageBuffer(
+            size: size,
+            renderingThreads: renderingThreads,
+            hdc: hdc
+        )
 
         if scale == 1.0 {
             return .singleBuffer(secondary)
         } else {
             let primary = BLImage(size: size.scaled(by: scale), format: format)
+            let primaryContext = BLContext(image: primary, options: .init(threadCount: renderingThreads))!
+
             return .doubleBuffer(
+                primaryContext: primaryContext,
                 primaryBuffer: primary,
                 primaryBufferScale: scale,
                 secondaryBuffer: secondary
