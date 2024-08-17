@@ -53,6 +53,12 @@ public class Blend2DWindow: Win32Window {
         recreateBuffers()
     }
 
+    private func onImagineActor(_ block: @Sendable @ImagineActor @escaping () -> Void) {
+        Task.detached { @ImagineActor in
+            block()
+        }
+    }
+
     private func initializeKeyboardManager() {
         keyboardManager = Win32KeyboardManager(hwnd: hwnd)
         keyboardManager?.delegate = self
@@ -67,7 +73,9 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func resizeApp() {
-        content.resize(scaledContentSize)
+        onImagineActor {
+            self.content.resize(self.scaledContentSize)
+        }
 
         recreateBuffers()
 
@@ -99,7 +107,9 @@ public class Blend2DWindow: Win32Window {
     public override func onLayout() {
         super.onLayout()
 
-        content.performLayout()
+        onImagineActor {
+            self.content.performLayout()
+        }
     }
 
     public override func onResize(_ message: WindowMessage) {
@@ -121,7 +131,10 @@ public class Blend2DWindow: Win32Window {
 
         WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
-        content.didCloseWindow()
+
+        onImagineActor {
+            self.content.didCloseWindow()
+        }
     }
 
     public override func onPaint(_ message: WindowMessage) {
@@ -157,7 +170,9 @@ public class Blend2DWindow: Win32Window {
 
         let renderer = Blend2DRenderer(context: ctx)
 
-        content.render(renderer: renderer, renderScale: scale * dpiScalingFactor, clipRegion: clip)
+        ImagineActorExecutor.synchronousOperation {
+            content.render(renderer: renderer, renderScale: scale * dpiScalingFactor, clipRegion: clip)
+        }
 
         ctx.flush(flags: .sync)
     }
@@ -463,7 +478,7 @@ extension Blend2DWindow: Win32KeyboardManagerDelegate {
 
 extension Blend2DWindow: ImagineUIContentDelegate {
     public func needsLayout(_ content: ImagineUIContentType, _ view: View) {
-        setNeedsLayout()
+        self.setNeedsLayout()
     }
 
     public func invalidate(_ content: ImagineUIContentType, bounds: UIRectangle) {
@@ -477,7 +492,30 @@ extension Blend2DWindow: ImagineUIContentDelegate {
             .scaled(by: dpiScalingFactor)
             .roundedToLargest()
 
-        setNeedsDisplay(screenBounds.asRect)
+        let availableBounds =
+            UIRectangle(
+                x: 0,
+                y: 0,
+                width: Double(size.width),
+                height: Double(size.height)
+            )
+
+        guard let clipRegion = screenBounds.intersection(availableBounds) else {
+            return
+        }
+
+        let message = InvalidateMessage(
+            x: LONG(clipRegion.x),
+            y: LONG(clipRegion.y),
+            width: LONG(clipRegion.width),
+            height: LONG(clipRegion.height)
+        )
+        postMessage(message)
+        /*
+        DispatchQueue.main.async {
+            self.setNeedsDisplay(screenBounds.asRect)
+        }
+        */
     }
 
     public func setMouseCursor(

@@ -17,7 +17,6 @@ func wWinMain(_ hInstance: HINSTANCE,
 func start() throws -> CInt {
     try? setupLogging()
 
-    let delegate = SampleDelegate()
     let fontPath = Bundle.module.path(forResource: "NotoSans-Regular", ofType: "ttf")!
 
     if !FileManager.default.fileExists(atPath: fontPath) {
@@ -27,6 +26,7 @@ func start() throws -> CInt {
 
     let settings = ImagineUIAppStartupSettings(defaultFontPath: fontPath)
 
+    let delegate = SampleDelegate()
     app = ImagineUIApp(settings: settings, delegate: delegate)
     return try app.run()
 }

@@ -5,6 +5,7 @@ import Blend2DRenderer
 import MinWin32
 import ImagineUI_Win
 
+@ImagineActor
 class SampleWindow: ImagineUIWindowContent {
     private var timer: Timer?
     private let data: TreeDataSource = TreeDataSource()
@@ -29,6 +30,7 @@ class SampleWindow: ImagineUIWindowContent {
         initializeTimer()
     }
 
+    @ImagineActor
     func createSampleWindow() {
         let window =
             Window(area: UIRectangle(x: 50, y: 120, width: 320, height: 330),
@@ -199,6 +201,7 @@ class SampleWindow: ImagineUIWindowContent {
         addRootView(window)
     }
 
+    @ImagineActor
     func createTreeViewWindow() {
         let window =
             Window(area: UIRectangle(x: 150, y: 50, width: 320, height: 330),
@@ -243,6 +246,7 @@ class SampleWindow: ImagineUIWindowContent {
         app.requestQuit()
     }
 
+    @ImagineActor
     func createRenderSettingsWindow() {
         func toggleFlag(_ sample: SampleWindow,
                         _ flag: DebugDraw.DebugDrawFlags,
