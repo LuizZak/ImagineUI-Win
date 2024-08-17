@@ -314,17 +314,17 @@ class SampleWindow: ImagineUIWindowContent {
 
             renderer.fill(
                 UIPolygon(vertices: [
-                    mount1.p0.asVector2,
-                    mount1.p1.asVector2,
-                    mount1.p2.asVector2
+                    mount1.p0.asUIVector,
+                    mount1.p1.asUIVector,
+                    mount1.p2.asUIVector
                 ])
             )
             renderer.translate(x: 15, y: 4)
             renderer.fill(
                 UIPolygon(vertices: [
-                    mount2.p0.asVector2,
-                    mount2.p1.asVector2,
-                    mount2.p2.asVector2
+                    mount2.p0.asUIVector,
+                    mount2.p1.asUIVector,
+                    mount2.p2.asUIVector
                 ])
             )
 
