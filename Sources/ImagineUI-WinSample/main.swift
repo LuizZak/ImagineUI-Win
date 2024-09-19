@@ -17,7 +17,10 @@ func wWinMain(_ hInstance: HINSTANCE,
 func start() throws -> CInt {
     try? setupLogging()
 
-    let fontPath = Bundle.module.path(forResource: "NotoSans-Regular", ofType: "ttf")!
+    var fontPath = Bundle.module.path(forResource: "NotoSans-Regular", ofType: "ttf")!
+    if fontPath.hasPrefix("/") {
+        fontPath = String(fontPath.dropFirst())
+    }
 
     if !FileManager.default.fileExists(atPath: fontPath) {
         WinLogger.error("Failed to find default font face at path \(fontPath)")
