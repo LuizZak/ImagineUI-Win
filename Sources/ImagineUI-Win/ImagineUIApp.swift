@@ -6,12 +6,14 @@ import MinWin32
 
 public class ImagineUIApp: MinWin32App {
     var settings: ImagineUIAppStartupSettings
+    var mainThreadId: DWORD
 
     public init(
         settings: ImagineUIAppStartupSettings,
         delegate: any MinWin32AppDelegate
     ) {
         self.settings = settings
+        self.mainThreadId = GetCurrentThreadId()
 
         super.init(delegate: delegate)
     }
@@ -31,6 +33,12 @@ public class ImagineUIApp: MinWin32App {
 
             window.show(position: position)
         }
+    }
+
+    public override func requestQuit() {
+        WinLogger.info("Application requested termination.")
+
+        PostThreadMessageW(mainThreadId, UINT(WM_QUIT), 0, 0)
     }
 
     /// Initializes the main run loop of the application.
@@ -98,9 +106,10 @@ public class ImagineUIApp: MinWin32App {
         var msg: MSG = MSG()
         var nExitCode: Int32 = EXIT_SUCCESS
 
-        mainLoop: while true {
-            //ImagineActorExecutor.flushJobsSynchronously()
+        // Update main thread ID before proceeding
+        self.mainThreadId = GetCurrentThreadId()
 
+        mainLoop: while true {
             // Process all messages in thread's message queue; for GUI applications
             // UI events must have high priority.
             while PeekMessageW(&msg, nil, 0, 0, UINT(PM_REMOVE)) {

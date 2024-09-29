@@ -53,9 +53,9 @@ public class Blend2DWindow: Win32Window {
         recreateBuffers()
     }
 
-    private func onImagineActor(_ block: @Sendable @ImagineActor @escaping () -> Void) {
-        Task.detached { @ImagineActor in
-            block()
+    private func onImagineActor(_ block: sending @ImagineActor @escaping () async -> Void) {
+        Task.detached {
+            await block()
         }
     }
 
@@ -65,7 +65,9 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func initializeClipboard() {
-        globalTextClipboard = Win32TextClipboard()
+        onImagineActor {
+            globalTextClipboard = Win32TextClipboard()
+        }
     }
 
     private func initializeContent() {
@@ -73,8 +75,8 @@ public class Blend2DWindow: Win32Window {
     }
 
     private func resizeApp() {
-        onImagineActor {
-            self.content.resize(self.scaledContentSize)
+        Task.detached { @ImagineActor [content, scaledContentSize] in
+            content.resize(scaledContentSize)
         }
 
         recreateBuffers()
@@ -107,8 +109,8 @@ public class Blend2DWindow: Win32Window {
     public override func onLayout() {
         super.onLayout()
 
-        onImagineActor {
-            self.content.performLayout()
+        Task.detached { @ImagineActor [content] in
+            content.performLayout()
         }
     }
 
@@ -132,8 +134,8 @@ public class Blend2DWindow: Win32Window {
         WinLogger.info("\(self): Closed")
         _closed.publishEvent(sender: self)
 
-        onImagineActor {
-            self.content.didCloseWindow()
+        Task.detached { @ImagineActor [content] in
+            content.didCloseWindow()
         }
     }
 
@@ -167,10 +169,9 @@ public class Blend2DWindow: Win32Window {
 
     private func paintImmediateBuffer(context ctx: BLContext, scale: UIVector, rect: UIRectangle) {
         let clip = UIRegionClipRegion(region: .init(rectangle: rect))
-
         let renderer = Blend2DRenderer(context: ctx)
 
-        ImagineActorExecutor.synchronousOperation {
+        ImagineActorExecutor.synchronousOperation { [content, dpiScalingFactor] in
             content.render(renderer: renderer, renderScale: scale * dpiScalingFactor, clipRegion: clip)
         }
 
@@ -181,8 +182,8 @@ public class Blend2DWindow: Win32Window {
 
     public override func onMouseLeave(_ message: WindowMessage) {
         defer {
-            Task.detached {
-                await self.content.mouseLeave()
+            onImagineActor { [content] in
+                await content.mouseLeave()
             }
         }
 
@@ -192,8 +193,8 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseMove(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .other)
-            Task.detached {
-                await self.content.mouseMoved(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseMoved(event: event)
             }
         }
 
@@ -203,8 +204,8 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseWheel(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .mouseWheel)
-            Task.detached {
-                await self.content.mouseScroll(event: event)
+            onImagineActor { [content] in
+                await content.mouseScroll(event: event)
             }
         }
 
@@ -214,8 +215,8 @@ public class Blend2DWindow: Win32Window {
     public override func onMouseHWheel(_ message: WindowMessage) -> LRESULT? {
         defer {
             let event = makeMouseEventArgs(message, kind: .mouseHWheel)
-            Task.detached {
-                await self.content.mouseScroll(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseScroll(event: event)
             }
         }
 
@@ -227,8 +228,8 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .left)
-            Task.detached {
-                await self.content.mouseDown(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseDown(event: event)
             }
         }
 
@@ -240,8 +241,8 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .middle)
-            Task.detached {
-                await self.content.mouseDown(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseDown(event: event)
             }
         }
 
@@ -253,8 +254,8 @@ public class Blend2DWindow: Win32Window {
             SetCapture(hwnd)
 
             let event = makeMouseEventArgs(message, kind: .other, button: .right)
-            Task.detached {
-                await self.content.mouseDown(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseDown(event: event)
             }
         }
 
@@ -266,8 +267,8 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .left)
-            Task.detached {
-                await self.content.mouseUp(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseUp(event: event)
             }
         }
 
@@ -279,8 +280,8 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .middle)
-            Task.detached {
-                await self.content.mouseUp(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseUp(event: event)
             }
         }
 
@@ -292,8 +293,8 @@ public class Blend2DWindow: Win32Window {
             ReleaseCapture()
 
             let event = makeMouseEventArgs(message, kind: .other, button: .right)
-            Task.detached {
-                await self.content.mouseUp(event: event)
+            onImagineActor { [content, event] in
+                await content.mouseUp(event: event)
             }
         }
 
@@ -458,20 +459,20 @@ public class Blend2DWindow: Win32Window {
 
 extension Blend2DWindow: Win32KeyboardManagerDelegate {
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: Win32KeyPressEventArgs) {
-        Task.detached {
-            await self.content.keyPress(event: event.asKeyPressEventArgs)
+        onImagineActor { [content, event] in
+            await content.keyPress(event: event.asKeyPressEventArgs)
         }
     }
 
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyDown event: Win32KeyEventArgs) {
-        Task.detached {
-            await self.content.keyDown(event: event.asKeyEventArgs)
+        onImagineActor { [content, event] in
+            await content.keyDown(event: event.asKeyEventArgs)
         }
     }
 
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyUp event: Win32KeyEventArgs) {
-        Task.detached {
-            await self.content.keyUp(event: event.asKeyEventArgs)
+        onImagineActor { [content, event] in
+            await content.keyUp(event: event.asKeyEventArgs)
         }
     }
 }

@@ -3,7 +3,7 @@ import WinSDK
 
 /// A high-precision stopwatch that measures time intervals in seconds as a
 // double-precision floating-point number.
-public class Stopwatch {
+public class Stopwatch: @unchecked Sendable {
     private static let frequency: LARGE_INTEGER = {
         var ret: LARGE_INTEGER
         ret = LARGE_INTEGER()

@@ -1,7 +1,7 @@
 import MinWin32
 import ImagineUI_Win
 
-class MainWindow: ImagineUIWindowContent {
+final class MainWindow: ImagineUIWindowContent {
     func show() {
         app.show(content: self)
     }

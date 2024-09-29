@@ -1,52 +1,51 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "CassowarySwift",
-        "repositoryURL": "https://github.com/LuizZak/CassowarySwift.git",
-        "state": {
-          "branch": "cassowary-swift-optimizations",
-          "revision": "b2377a0bb3c0cb43f63278f1a2ef85384d370861",
-          "version": null
-        }
-      },
-      {
-        "package": "swift-bezier",
-        "repositoryURL": "https://github.com/LuizZak/swift-bezier.git",
-        "state": {
-          "branch": null,
-          "revision": "7061d2e5396e006e6b80313510c3689917d9569d",
-          "version": "0.6.0"
-        }
-      },
-      {
-        "package": "SwiftBlend2D",
-        "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
-        "state": {
-          "branch": "master",
-          "revision": "855fe139f972fea76afceba23a289846df03ec5d",
-          "version": null
-        }
-      },
-      {
-        "package": "SwiftCOM",
-        "repositoryURL": "https://github.com/compnerd/swift-com.git",
-        "state": {
-          "branch": "main",
-          "revision": "8b2a7b50d9bcec07f0ae84d2be7f9909e73223d3",
-          "version": null
-        }
-      },
-      {
-        "package": "swift-log",
-        "repositoryURL": "https://github.com/apple/swift-log.git",
-        "state": {
-          "branch": "main",
-          "revision": "db86ac725bb4a194636c716461f5a166e93b29ba",
-          "version": null
-        }
+  "originHash" : "973fc2966d2e7f98ac36e1082ebeec17c6c3a6b959fca57ba28e80fe2164683b",
+  "pins" : [
+    {
+      "identity" : "cassowaryswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/CassowarySwift.git",
+      "state" : {
+        "branch" : "cassowary-swift-optimizations",
+        "revision" : "eecee2e108fca14a002cf8bd6562f35722bc3627"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "swift-bezier",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/swift-bezier.git",
+      "state" : {
+        "revision" : "7061d2e5396e006e6b80313510c3689917d9569d",
+        "version" : "0.6.0"
+      }
+    },
+    {
+      "identity" : "swift-blend2d",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/swift-blend2d.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "855fe139f972fea76afceba23a289846df03ec5d"
+      }
+    },
+    {
+      "identity" : "swift-com",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/compnerd/swift-com.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "8b2a7b50d9bcec07f0ae84d2be7f9909e73223d3"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "db86ac725bb4a194636c716461f5a166e93b29ba"
+      }
+    }
+  ],
+  "version" : 3
 }

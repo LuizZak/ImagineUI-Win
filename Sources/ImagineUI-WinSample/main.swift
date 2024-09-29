@@ -3,6 +3,7 @@ import WinSDK
 import MinWin32
 import ImagineUI_Win
 
+nonisolated(unsafe)
 var app: ImagineUIApp!
 
 @_silgen_name("wWinMain")

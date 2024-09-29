@@ -7,7 +7,7 @@ import ImagineUI_Win
 
 @ImagineActor
 class SampleWindow: ImagineUIWindowContent {
-    private var timer: Timer?
+    nonisolated(unsafe) private var timer: Timer?
     private let data: TreeDataSource = TreeDataSource()
     private var comboBoxSelection: Int = 1
 
@@ -320,17 +320,17 @@ class SampleWindow: ImagineUIWindowContent {
 
             renderer.fill(
                 UIPolygon(vertices: [
-                    mount1.p0.asVector2,
-                    mount1.p1.asVector2,
-                    mount1.p2.asVector2
+                    mount1.p0.asUIVector,
+                    mount1.p1.asUIVector,
+                    mount1.p2.asUIVector
                 ])
             )
             renderer.translate(x: 15, y: 4)
             renderer.fill(
                 UIPolygon(vertices: [
-                    mount2.p0.asVector2,
-                    mount2.p1.asVector2,
-                    mount2.p2.asVector2
+                    mount2.p0.asUIVector,
+                    mount2.p1.asUIVector,
+                    mount2.p2.asUIVector
                 ])
             )
 

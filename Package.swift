@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.0
 import PackageDescription
 
 var executableTarget: Target = .executableTarget(
@@ -52,9 +52,9 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/LuizZak/ImagineUI.git", .branch("master")),
-        .package(url: "https://github.com/LuizZak/MinWin32.git", .branch("main")),
-        .package(url: "https://github.com/apple/swift-log.git", .branch("main")),
+        .package(url: "https://github.com/LuizZak/ImagineUI.git", branch: "master"),
+        .package(url: "https://github.com/LuizZak/MinWin32.git", branch: "main"),
+        .package(url: "https://github.com/apple/swift-log.git", branch: "main"),
     ],
     targets: [
         executableTarget,
