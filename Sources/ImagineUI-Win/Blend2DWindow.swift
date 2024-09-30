@@ -460,7 +460,7 @@ public class Blend2DWindow: Win32Window {
 extension Blend2DWindow: Win32KeyboardManagerDelegate {
     public func keyboardManager(_ manager: Win32KeyboardManager, onKeyPress event: Win32KeyPressEventArgs) {
         onImagineActor { [content, event] in
-            await content.keyPress(event: event.asKeyPressEventArgs)
+            _=await content.keyPress(event: event.asKeyPressEventArgs)
         }
     }
 
