@@ -52,7 +52,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/LuizZak/ImagineUI.git", branch: "master"),
+        .package(url: "https://github.com/LuizZak/ImagineUI.git", branch: "async-actor"),
         .package(url: "https://github.com/LuizZak/MinWin32.git", branch: "main"),
         .package(url: "https://github.com/apple/swift-log.git", branch: "main"),
     ],
