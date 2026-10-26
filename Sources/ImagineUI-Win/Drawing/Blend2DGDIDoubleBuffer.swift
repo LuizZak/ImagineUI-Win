@@ -20,7 +20,7 @@ class Blend2DGDIDoubleBuffer {
         scale: UIVector = .init(repeating: 1)
     ) {
 
-        precondition(contentSize.w > 0 && contentSize.h > 0 && scale > .zero)
+        precondition(contentSize.w > 0 && contentSize.h > 0 && scale > UIVector.zero)
         self.contentSize = contentSize
         self.scale = scale
         self.format = format
