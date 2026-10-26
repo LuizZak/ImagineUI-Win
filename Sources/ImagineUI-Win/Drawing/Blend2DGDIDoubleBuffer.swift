@@ -36,7 +36,7 @@ class Blend2DGDIDoubleBuffer {
 
     /// - precondition: scale > .zero
     func setPrimaryBufferScale(_ scale: UIVector) {
-        precondition(scale > .zero)
+        precondition(scale > UIVector.zero)
         self.scale = scale
     }
 

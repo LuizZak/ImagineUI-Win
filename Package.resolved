@@ -11,6 +11,24 @@
         }
       },
       {
+        "package": "ImagineUI",
+        "repositoryURL": "https://github.com/LuizZak/ImagineUI.git",
+        "state": {
+          "branch": "master",
+          "revision": "f6eaaa60999e109ac4733a9e9b2d51935c3e7b08",
+          "version": null
+        }
+      },
+      {
+        "package": "MinWin32",
+        "repositoryURL": "https://github.com/LuizZak/MinWin32.git",
+        "state": {
+          "branch": "main",
+          "revision": "2520faeecb8089cad2d7ecf9772c3f61247842d7",
+          "version": null
+        }
+      },
+      {
         "package": "swift-bezier",
         "repositoryURL": "https://github.com/LuizZak/swift-bezier.git",
         "state": {
@@ -20,7 +38,7 @@
         }
       },
       {
-        "package": "SwiftBlend2D",
+        "package": "swift-blend2d",
         "repositoryURL": "https://github.com/LuizZak/swift-blend2d.git",
         "state": {
           "branch": "master",
@@ -29,7 +47,7 @@
         }
       },
       {
-        "package": "SwiftCOM",
+        "package": "swift-com",
         "repositoryURL": "https://github.com/compnerd/swift-com.git",
         "state": {
           "branch": "main",
